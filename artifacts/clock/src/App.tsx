@@ -108,7 +108,7 @@ export default function App() {
         {isFullscreen ? (
           <>
             <ExitFullscreenIcon />
-            <span>Выйти</span>
+            <span>Выйти из полного экрана</span>
           </>
         ) : (
           <>
