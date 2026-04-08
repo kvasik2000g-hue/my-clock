@@ -146,14 +146,20 @@ export function useControlsVisible() {
 
 export function useSetting<T>(
   key: string,
-  defaultValue: T
+  defaultValue: T,
+  validate?: (v: unknown) => v is T
 ): [T, (v: T) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
       const stored = localStorage.getItem(`clock-${key}`);
-      if (stored !== null) return JSON.parse(stored) as T;
+      if (stored !== null) {
+        const parsed = JSON.parse(stored) as unknown;
+        if (validate ? validate(parsed) : typeof parsed === typeof defaultValue) {
+          return parsed as T;
+        }
+      }
     } catch {
-      // ignore
+      // ignore parse errors and fall through to default
     }
     return defaultValue;
   });

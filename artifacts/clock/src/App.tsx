@@ -20,6 +20,14 @@ import { AnalogClock } from "./clocks/AnalogClock";
 import { NeonClock } from "./clocks/NeonClock";
 import { FlipClock } from "./clocks/FlipClock";
 
+const STYLES: ClockStyle[] = ["digital", "apple", "analog", "neon", "flip"];
+const THEMES: ClockTheme[] = ["black", "night", "matrix", "amber", "day"];
+const isClockStyle = (v: unknown): v is ClockStyle =>
+  STYLES.includes(v as ClockStyle);
+const isClockTheme = (v: unknown): v is ClockTheme =>
+  THEMES.includes(v as ClockTheme);
+const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
+
 function BatteryIndicator() {
   const { supported, level, charging } = useBattery();
   if (!supported) return null;
@@ -81,11 +89,10 @@ function ClockFace({
       return <NeonClock {...props} />;
     case "flip":
       return <FlipClock {...props} />;
+    default:
+      return <DigitalClock {...props} />;
   }
 }
-
-const STYLES: ClockStyle[] = ["digital", "apple", "analog", "neon", "flip"];
-const THEMES: ClockTheme[] = ["black", "night", "matrix", "amber", "day"];
 
 export default function App() {
   const time = useTime();
@@ -93,10 +100,10 @@ export default function App() {
   const { visible: controlsVisible } = useControlsVisible();
   useWakeLock();
 
-  const [style, setStyle] = useSetting<ClockStyle>("style", "digital");
-  const [theme, setTheme] = useSetting<ClockTheme>("theme", "black");
-  const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true);
-  const [use24h, setUse24h] = useSetting<boolean>("24h", true);
+  const [style, setStyle] = useSetting<ClockStyle>("style", "digital", isClockStyle);
+  const [theme, setTheme] = useSetting<ClockTheme>("theme", "black", isClockTheme);
+  const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
+  const [use24h, setUse24h] = useSetting<boolean>("24h", true, isBoolean);
 
   useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
