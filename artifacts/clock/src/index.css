@@ -1,95 +1,666 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&family=Inter:wght@200;300;400;500&display=swap');
 
+/* ============================================================
+   RESET
+   ============================================================ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body, #root {
-  width: 100%;
-  height: 100%;
-  min-height: 100dvh;
-  background: #000;
-  color: #fff;
-  font-family: 'Share Tech Mono', 'Courier New', monospace;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.clock-root {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 100dvh;
-  background: #000;
-  position: relative;
-  padding: 2rem 1rem;
-}
-
-.clock-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  justify-content: center;
-}
-
-.clock-time {
-  font-size: clamp(3.5rem, 18vw, 10rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  color: #fff;
-  line-height: 1;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.clock-date {
-  font-size: clamp(0.9rem, 4vw, 1.6rem);
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.06em;
-  text-align: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  font-weight: 300;
-  text-transform: lowercase;
-}
-
-.fullscreen-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 2rem;
-  padding: 0.6rem 1.2rem;
-  font-size: 0.85rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+button {
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-  margin-top: 2rem;
-  letter-spacing: 0.02em;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.fullscreen-btn:hover,
-.fullscreen-btn:active {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
+/* ============================================================
+   THEMES  (data-theme on .app-root and documentElement)
+   ============================================================ */
+:root,
+[data-theme="black"] {
+  --bg:              #000000;
+  --fg:              #ffffff;
+  --fg-dim:          rgba(255,255,255,0.42);
+  --accent:          #ffffff;
+  --card-bg:         #1c1c1e;
+  --card-line:       rgba(255,255,255,0.10);
+  --ctrl-bg:         rgba(255,255,255,0.07);
+  --ctrl-border:     rgba(255,255,255,0.11);
+  --ctrl-active-bg:  rgba(255,255,255,0.16);
+  --glow:            rgba(255,255,255,0.65);
+  --analog-fg:       #ffffff;
+  --analog-second:   #ff453a;
 }
 
-.fullscreen-btn svg {
+[data-theme="night"] {
+  --bg:              #030d1f;
+  --fg:              #cce7ff;
+  --fg-dim:          rgba(204,231,255,0.40);
+  --accent:          #4a9eff;
+  --card-bg:         #0d1e38;
+  --card-line:       rgba(74,158,255,0.18);
+  --ctrl-bg:         rgba(74,158,255,0.07);
+  --ctrl-border:     rgba(74,158,255,0.18);
+  --ctrl-active-bg:  rgba(74,158,255,0.20);
+  --glow:            rgba(74,158,255,0.75);
+  --analog-fg:       #cce7ff;
+  --analog-second:   #ffd60a;
+}
+
+[data-theme="matrix"] {
+  --bg:              #001400;
+  --fg:              #00ff41;
+  --fg-dim:          rgba(0,255,65,0.42);
+  --accent:          #00ff41;
+  --card-bg:         #002800;
+  --card-line:       rgba(0,255,65,0.18);
+  --ctrl-bg:         rgba(0,255,65,0.07);
+  --ctrl-border:     rgba(0,255,65,0.18);
+  --ctrl-active-bg:  rgba(0,255,65,0.16);
+  --glow:            rgba(0,255,65,0.80);
+  --analog-fg:       #00ff41;
+  --analog-second:   #ff453a;
+}
+
+[data-theme="amber"] {
+  --bg:              #1c0e00;
+  --fg:              #ffc850;
+  --fg-dim:          rgba(255,200,80,0.42);
+  --accent:          #ff9500;
+  --card-bg:         #2e1800;
+  --card-line:       rgba(255,149,0,0.18);
+  --ctrl-bg:         rgba(255,149,0,0.07);
+  --ctrl-border:     rgba(255,149,0,0.18);
+  --ctrl-active-bg:  rgba(255,149,0,0.18);
+  --glow:            rgba(255,149,0,0.80);
+  --analog-fg:       #ffc850;
+  --analog-second:   #30d158;
+}
+
+[data-theme="day"] {
+  --bg:              #f2f2f7;
+  --fg:              #1c1c1e;
+  --fg-dim:          rgba(28,28,30,0.42);
+  --accent:          #007aff;
+  --card-bg:         #e5e5ea;
+  --card-line:       rgba(0,0,0,0.09);
+  --ctrl-bg:         rgba(0,0,0,0.055);
+  --ctrl-border:     rgba(0,0,0,0.11);
+  --ctrl-active-bg:  rgba(0,122,255,0.11);
+  --glow:            rgba(0,122,255,0.45);
+  --analog-fg:       #1c1c1e;
+  --analog-second:   #ff3b30;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  overscroll-behavior: none;
+  transition: background 0.35s, color 0.35s;
+}
+
+.app-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--bg);
+  transition: background 0.35s;
+  position: relative;
+}
+
+/* ============================================================
+   BATTERY INDICATOR
+   ============================================================ */
+.battery-indicator {
+  position: fixed;
+  top: env(safe-area-inset-top, 0.8rem);
+  right: 1rem;
+  margin-top: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  z-index: 100;
+  opacity: 0.8;
+}
+
+.battery-icon {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.battery-body {
+  width: 24px;
+  height: 12px;
+  border: 1.5px solid var(--fg-dim);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  padding: 1px;
+}
+
+.battery-fill {
+  height: 100%;
+  border-radius: 1.5px;
+  transition: width 0.6s ease, background 0.4s;
+}
+
+.battery-nub {
+  width: 3px;
+  height: 6px;
+  background: var(--fg-dim);
+  border-radius: 0 1.5px 1.5px 0;
   flex-shrink: 0;
 }
 
-@media (max-width: 480px) {
-  .clock-root {
-    padding: 1.5rem 0.75rem;
-  }
+.battery-pct {
+  font-size: 0.68rem;
+  color: var(--fg-dim);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  transition: color 0.35s;
+}
+
+/* ============================================================
+   CLOCK AREA  (fills space above panel)
+   ============================================================ */
+.clock-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem 7.5rem;
+  min-height: 0;
+}
+
+.clock-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Shared date style */
+.clock-date {
+  font-size: clamp(0.7rem, 3.2vw, 1.25rem);
+  color: var(--fg-dim);
+  letter-spacing: 0.04em;
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-weight: 300;
+  margin-top: 0.55rem;
+  transition: color 0.35s;
+}
+
+/* ============================================================
+   1.  DIGITAL CLOCK
+   ============================================================ */
+.digital-time {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: clamp(3.2rem, 17vw, 9rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--fg);
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: font-size 0.4s ease, color 0.35s;
+}
+
+.digital-time[data-no-seconds="true"] {
+  font-size: clamp(5.5rem, 28vw, 14rem);
+}
+
+.digital-ampm {
+  font-size: 0.35em;
+  margin-left: 0.15em;
+  vertical-align: top;
+  line-height: 2;
+  opacity: 0.55;
+}
+
+/* ============================================================
+   2.  APPLE CLOCK
+   ============================================================ */
+.apple-time {
+  display: flex;
+  align-items: baseline;
+  gap: 0.12em;
+  line-height: 1;
+}
+
+.apple-hm {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+  font-weight: 200;
+  font-size: clamp(4.5rem, 23vw, 12rem);
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.35s;
+}
+
+.apple-hm[data-no-seconds="true"] {
+  font-size: clamp(6rem, 31vw, 16rem);
+}
+
+.apple-sec {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+  font-weight: 200;
+  font-size: clamp(2rem, 10vw, 5.2rem);
+  letter-spacing: -0.02em;
+  color: var(--fg-dim);
+  transition: color 0.35s;
+}
+
+.apple-ampm {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: clamp(0.85rem, 4vw, 1.7rem);
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: var(--fg-dim);
+  text-align: center;
+  margin-top: 0.3rem;
+  transition: color 0.35s;
+}
+
+.apple-date {
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   3.  ANALOG CLOCK
+   ============================================================ */
+.analog-face {
+  gap: 0.8rem;
+}
+
+.analog-svg {
+  width: min(76vw, 62vh, 380px);
+  height: min(76vw, 62vh, 380px);
+}
+
+.analog-bg-circle {
+  fill: var(--bg);
+}
+
+.analog-circle {
+  fill: var(--card-bg);
+  stroke: var(--fg-dim);
+  stroke-width: 0.8;
+  transition: fill 0.35s, stroke 0.35s;
+}
+
+.analog-marker {
+  stroke: var(--fg-dim);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  transition: stroke 0.35s;
+}
+
+.analog-marker-hour {
+  stroke: var(--fg);
+  stroke-width: 2.2;
+  opacity: 0.8;
+}
+
+.analog-hand-hour {
+  stroke: var(--analog-fg);
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  transition: stroke 0.35s;
+}
+
+.analog-hand-minute {
+  stroke: var(--analog-fg);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke 0.35s;
+}
+
+.analog-hand-second {
+  stroke: var(--analog-second);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  transition: stroke 0.35s;
+}
+
+.analog-hand-second-tail {
+  fill: var(--analog-second);
+  transition: fill 0.35s;
+}
+
+.analog-center {
+  fill: var(--analog-fg);
+  transition: fill 0.35s;
+}
+
+.analog-center-inner {
+  fill: var(--analog-second);
+  transition: fill 0.35s;
+}
+
+.analog-date {
+  margin-top: 0;
+}
+
+/* ============================================================
+   4.  NEON CLOCK
+   ============================================================ */
+.neon-time {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+}
+
+.neon-digits {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(3rem, 15.5vw, 8.5rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 0 6px var(--fg),
+    0 0 18px var(--glow),
+    0 0 38px var(--glow),
+    0 0 65px var(--glow);
+  transition: text-shadow 0.4s, color 0.35s;
+  line-height: 1;
+}
+
+.neon-digits-small {
+  font-size: clamp(1.6rem, 8vw, 4.2rem);
+}
+
+.neon-sep {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.5rem, 13vw, 7rem);
+  font-weight: 400;
+  color: var(--fg);
+  opacity: 0.6;
+  text-shadow:
+    0 0 5px var(--fg),
+    0 0 14px var(--glow);
+  animation: neon-blink 2s ease-in-out infinite;
+  margin: 0 0.04em;
+  align-self: center;
+  margin-bottom: 0.12em;
+  line-height: 1;
+}
+
+.neon-sep-small {
+  font-size: clamp(1.3rem, 6.5vw, 3.5rem);
+}
+
+@keyframes neon-blink {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 0.30; }
+}
+
+.neon-ampm {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1rem, 4vw, 2.2rem);
+  font-weight: 400;
+  margin-left: 0.25em;
+  opacity: 0.65;
+  align-self: flex-end;
+  margin-bottom: 0.1em;
+  text-shadow: 0 0 8px var(--glow);
+}
+
+.neon-date {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.55rem, 2.2vw, 0.85rem);
+  letter-spacing: 0.14em;
+  margin-top: 1rem;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px var(--glow);
+  opacity: 0.75;
+}
+
+/* ============================================================
+   5.  FLIP CLOCK
+   ============================================================ */
+.flip-face {}
+
+.flip-time {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.2rem, 1vw, 0.5rem);
+}
+
+.flip-group {
+  display: flex;
+  gap: clamp(0.12rem, 0.5vw, 0.3rem);
+}
+
+/* Each digit card */
+.flip-digit {
+  position: relative;
+  width: 0.68em;
+  height: 1.32em;
+  font-size: clamp(3rem, 14vw, 7.5rem);
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  background: var(--card-bg);
+  border-radius: 0.065em;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+  color: var(--fg);
+  transition: background 0.35s, color 0.35s;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Horizontal split line through the middle (classic flip clock look) */
+.flip-digit::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--card-line);
+  z-index: 2;
+}
+
+/* When seconds are hidden, make digits larger */
+.flip-time[data-no-seconds="true"] .flip-digit {
+  font-size: clamp(4.5rem, 22vw, 11.5rem);
+}
+
+/* Text inside the card */
+.flip-text {
+  display: block;
+  line-height: 1;
+  font-size: 1em;
+}
+
+/* Flip animation */
+.flip-digit.flipping {
+  animation: card-flip 0.34s cubic-bezier(.45,.05,.55,.95);
+  transform-style: preserve-3d;
+}
+
+@keyframes card-flip {
+  0%   { transform: perspective(350px) rotateX(0deg); }
+  45%  { transform: perspective(350px) rotateX(-90deg); }
+  55%  { transform: perspective(350px) rotateX(90deg); }
+  100% { transform: perspective(350px) rotateX(0deg); }
+}
+
+/* Colon separators */
+.flip-colon {
+  font-size: clamp(2.5rem, 11.5vw, 6rem);
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--fg-dim);
+  line-height: 1;
+  align-self: center;
+  margin-bottom: 0.08em;
+  transition: color 0.35s;
+}
+
+.flip-colon-small {
+  font-size: clamp(1.5rem, 6vw, 3.2rem);
+}
+
+/* ============================================================
+   CONTROLS PANEL
+   ============================================================ */
+.controls-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.65rem 1rem calc(env(safe-area-inset-bottom, 0.5rem) + 0.6rem);
+  background: rgba(10,10,12,0.75);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border-top: 1px solid var(--ctrl-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  z-index: 50;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="day"] .controls-panel {
+  background: rgba(230,230,238,0.82);
+}
+
+.controls-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.controls-panel.hidden {
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+/* Style selector row */
+.style-row {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.style-btn {
+  flex: 1;
+  max-width: 5.5rem;
+  padding: 0.42rem 0.3rem;
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
+  color: var(--fg-dim);
+  border-radius: 0.5rem;
+  font-size: 0.7rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.style-btn.active {
+  background: var(--ctrl-active-bg);
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+/* Settings row */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* Theme picker dots */
+.theme-picker {
+  display: flex;
+  gap: 0.38rem;
+  align-items: center;
+}
+
+.theme-dot {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  outline: 2px solid transparent;
+  transition: border-color 0.15s, transform 0.15s, outline-color 0.15s;
+  flex-shrink: 0;
+}
+
+.theme-dot.active {
+  transform: scale(1.28);
+  outline-color: var(--fg);
+  outline-offset: 2px;
+}
+
+/* Thin vertical divider */
+.divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--ctrl-border);
+  margin: 0 0.1rem;
+  flex-shrink: 0;
+}
+
+/* Toggle buttons */
+.toggle-btn {
+  padding: 0.42rem 0.7rem;
+  background: var(--ctrl-bg);
+  border: 1px solid var(--ctrl-border);
+  color: var(--fg-dim);
+  border-radius: 0.5rem;
+  font-size: 0.72rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toggle-btn.active {
+  background: var(--ctrl-active-bg);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.icon-btn {
+  margin-left: auto;
+  padding: 0.42rem 0.6rem;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 360px) {
+  .style-btn { font-size: 0.62rem; padding: 0.38rem 0.15rem; }
+  .theme-dot { width: 1.15rem; height: 1.15rem; }
+  .toggle-btn { font-size: 0.65rem; padding: 0.38rem 0.55rem; }
+}
+
+@media (min-width: 600px) {
+  .clock-area { padding-bottom: 8.5rem; }
+  .style-btn { font-size: 0.78rem; max-width: 6.5rem; }
 }
