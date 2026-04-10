@@ -358,16 +358,18 @@ export interface StopwatchState {
   reset: () => void;
 }
 
+const _isBool = (v: unknown): v is boolean => typeof v === "boolean";
+
 export function useStopwatch(): StopwatchState {
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
   const elapsedRef = useRef(0);
   const startRef = useRef(0);
 
-  const [b60] = useSetting("swBeep60", false, isBoolean);
-  const [b30] = useSetting("swBeep30", false, isBoolean);
-  const [b10] = useSetting("swBeep10", false, isBoolean);
-  const [b1] = useSetting("swBeep1", false, isBoolean);
+  const [b60] = useSetting("swBeep60", false, _isBool);
+  const [b30] = useSetting("swBeep30", false, _isBool);
+  const [b10] = useSetting("swBeep10", false, _isBool);
+  const [b1] = useSetting("swBeep1", false, _isBool);
   const beepsRef = useRef({ b60, b30, b10, b1 });
   const lastBeepSecRef = useRef(0);
 
