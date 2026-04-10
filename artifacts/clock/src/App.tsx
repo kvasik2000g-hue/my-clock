@@ -339,14 +339,14 @@ export default function App() {
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
 
-  const [showSwAudioMenu, setShowSwAudioMenu] = useState(false);
+  const [showSwColorMenu, setShowSwColorMenu] = useState(false);
   const [swBeep60, setSwBeep60] = useSetting("swBeep60", false, isBoolean);
   const [swBeep30, setSwBeep30] = useSetting("swBeep30", false, isBoolean);
   const [swBeep10, setSwBeep10] = useSetting("swBeep10", false, isBoolean);
   const [swBeep1, setSwBeep1] = useSetting("swBeep1", false, isBoolean);
 
   const timer = useTimer(300);
-  const sw = useStopwatch();
+  const sw = useStopwatch({ b60: swBeep60, b30: swBeep30, b10: swBeep10, b1: swBeep1 });
 
   /* Apply theme */
   useEffect(() => {
@@ -437,9 +437,9 @@ export default function App() {
       {/* ── Top Calendar ── */}
       {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
-      {/* ── Left panel: themes or sound menu ── */}
+      {/* ── Left panel: sound menu (default in stopwatch) or themes ── */}
       <div className="side-panel side-panel-left">
-        {mode === "stopwatch" && showSwAudioMenu ? (
+        {mode === "stopwatch" && !showSwColorMenu ? (
           <>
             <button className={`panel-btn ${swBeep60 ? 'active' : ''}`} onClick={() => setSwBeep60(!swBeep60)} title="Сигнал каждую минуту">1м</button>
             <button className={`panel-btn ${swBeep30 ? 'active' : ''}`} onClick={() => setSwBeep30(!swBeep30)} title="Сигнал каждые 30 сек">30с</button>
@@ -448,7 +448,7 @@ export default function App() {
             
             <div className="panel-divider" style={{margin: '0.2rem 0'}} />
             
-            <button className="panel-btn" onClick={() => setShowSwAudioMenu(false)} title="Стиль часов">
+            <button className="panel-btn" onClick={() => setShowSwColorMenu(true)} title="Выбор цвета">
               <PaletteIcon />
             </button>
           </>
@@ -467,7 +467,7 @@ export default function App() {
             {mode === "stopwatch" && (
               <>
                 <div className="panel-divider" style={{margin: '0.2rem 0'}} />
-                <button className="panel-btn" onClick={() => setShowSwAudioMenu(true)} title="Звуковые сигналы">
+                <button className="panel-btn" onClick={() => setShowSwColorMenu(false)} title="Звуковые сигналы">
                   <SpeakerIcon />
                 </button>
               </>

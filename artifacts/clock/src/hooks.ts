@@ -350,6 +350,13 @@ export function useTimer(defaultSecs: number = 300): TimerState {
 /* ============================================================
    STOPWATCH HOOK
    ============================================================ */
+export interface StopwatchBeepConfig {
+  b60: boolean;
+  b30: boolean;
+  b10: boolean;
+  b1: boolean;
+}
+
 export interface StopwatchState {
   elapsed: number;
   running: boolean;
@@ -358,24 +365,18 @@ export interface StopwatchState {
   reset: () => void;
 }
 
-const _isBool = (v: unknown): v is boolean => typeof v === "boolean";
-
-export function useStopwatch(): StopwatchState {
+export function useStopwatch(beepConfig: StopwatchBeepConfig): StopwatchState {
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
   const elapsedRef = useRef(0);
   const startRef = useRef(0);
 
-  const [b60] = useSetting("swBeep60", false, _isBool);
-  const [b30] = useSetting("swBeep30", false, _isBool);
-  const [b10] = useSetting("swBeep10", false, _isBool);
-  const [b1] = useSetting("swBeep1", false, _isBool);
-  const beepsRef = useRef({ b60, b30, b10, b1 });
+  const beepsRef = useRef(beepConfig);
   const lastBeepSecRef = useRef(0);
 
   useEffect(() => {
-    beepsRef.current = { b60, b30, b10, b1 };
-  }, [b60, b30, b10, b1]);
+    beepsRef.current = beepConfig;
+  }, [beepConfig.b60, beepConfig.b30, beepConfig.b10, beepConfig.b1]);
 
   useEffect(() => {
     if (!running) return;
