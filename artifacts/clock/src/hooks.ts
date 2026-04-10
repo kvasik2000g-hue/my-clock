@@ -292,6 +292,13 @@ export function playMontanaHourlyChime() {
    ============================================================ */
 export type TimerPhase = "countdown" | "stopwatch";
 
+export interface TimerBeepConfig {
+  b60: boolean;
+  b30: boolean;
+  b10: boolean;
+  b1: boolean;
+}
+
 export interface TimerState {
   phase: TimerPhase;
   remaining: number;
@@ -303,7 +310,7 @@ export interface TimerState {
   adjustRemaining: (delta: number) => void;
 }
 
-export function useTimer(defaultSecs: number = 300): TimerState {
+export function useTimer(defaultSecs: number = 300, beepConfig?: TimerBeepConfig): TimerState {
   const [phase, setPhase] = useState<TimerPhase>("countdown");
   const [remaining, setRemaining] = useState(defaultSecs);
   const [elapsed, setElapsed] = useState(0);
@@ -313,16 +320,40 @@ export function useTimer(defaultSecs: number = 300): TimerState {
   const startRef = useRef(0);
   const countdownCueRef = useRef<number | null>(null);
   const zeroSignalMarksRef = useRef<number[]>([]);
+  const lastBeepSecRef = useRef<number | null>(null);
+  const beepConfigRef = useRef(beepConfig);
+
+  useEffect(() => {
+    beepConfigRef.current = beepConfig;
+  }, [beepConfig?.b60, beepConfig?.b30, beepConfig?.b10, beepConfig?.b1]);
 
   useEffect(() => {
     if (!running) return;
 
     if (phase === "countdown") {
+      lastBeepSecRef.current = remaining;
       const id = setInterval(() => {
         setRemaining((r) => {
           if (r <= 5 && r >= 3 && countdownCueRef.current !== r) {
             countdownCueRef.current = r;
             playCountdownBeep();
+          }
+
+          // Periodic beep check
+          const cfg = beepConfigRef.current;
+          if (cfg && lastBeepSecRef.current !== null && r < lastBeepSecRef.current) {
+            lastBeepSecRef.current = r;
+            const elapsed = remaining - r; // how many seconds elapsed since start
+            if (elapsed > 0) {
+              let shouldBeep = false;
+              if (cfg.b60 && elapsed % 60 === 0) shouldBeep = true;
+              else if (cfg.b30 && elapsed % 30 === 0) shouldBeep = true;
+              else if (cfg.b10 && elapsed % 10 === 0) shouldBeep = true;
+              else if (cfg.b1) shouldBeep = true;
+              if (shouldBeep && r > 5) { // don't overlap with countdown beeps
+                playStopwatchBeep();
+              }
+            }
           }
 
           if (r <= 1) {
@@ -374,10 +405,11 @@ export function useTimer(defaultSecs: number = 300): TimerState {
     elapsedRef.current = 0;
     countdownCueRef.current = null;
     zeroSignalMarksRef.current = [];
+    lastBeepSecRef.current = null;
   }, [defaultSecs]);
 
   const adjustRemaining = useCallback((delta: number) => {
-    setRemaining((r) => Math.min(5940, Math.max(10, r + delta)));
+    setRemaining((r) => Math.min(35999, Math.max(10, r + delta)));
     countdownCueRef.current = null;
   }, []);
 

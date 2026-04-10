@@ -804,7 +804,61 @@ html, body, #root {
   font-size: clamp(2.5rem, 11vw, 5.4rem);
 }
 
-/* Timer adjustment controls */
+/* Timer adjustment controls — new top row layout */
+.timer-global-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.timer-top-adj-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.timer-adj-pair {
+  display: flex;
+  flex-direction: row;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.timer-clock-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0;
+}
+
+.timer-clock-segment {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  font-weight: var(--clock-weight);
+  font-size: clamp(4rem, 18vw, 10rem);
+  letter-spacing: -0.03em;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.timer-clock-colon {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  font-weight: var(--clock-weight);
+  font-size: clamp(3.5rem, 15vw, 8.5rem);
+  letter-spacing: -0.03em;
+  color: var(--fg-dim);
+  padding: 0 0.08em;
+  line-height: 1;
+}
+
+.timer-clock-sec {
+  font-size: clamp(2.5rem, 10vw, 6rem);
+  color: var(--fg-dim);
+}
+
+/* Legacy (kept for backward compat) */
 .timer-center-row {
   display: flex;
   align-items: center;
@@ -820,12 +874,12 @@ html, body, #root {
 }
 
 .timer-adj-btn {
-  min-width: 4rem;
-  padding: 0.7rem 1.1rem;
+  min-width: 3.5rem;
+  padding: 0.5rem 0.8rem;
   background: var(--card-bg);
   color: var(--fg-dim);
   border-radius: 0.75rem;
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.01em;

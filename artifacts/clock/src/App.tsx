@@ -326,8 +326,9 @@ export default function App() {
   const [swBeep10, setSwBeep10] = useSetting("swBeep10", false, isBoolean);
   const [swBeep1, setSwBeep1] = useSetting("swBeep1", false, isBoolean);
 
-  const timer = useTimer(300);
-  const sw = useStopwatch({ b60: swBeep60, b30: swBeep30, b10: swBeep10, b1: swBeep1 });
+  const beepConfig = { b60: swBeep60, b30: swBeep30, b10: swBeep10, b1: swBeep1 };
+  const timer = useTimer(300, beepConfig);
+  const sw = useStopwatch(beepConfig);
 
   /* Apply theme */
   useEffect(() => {
@@ -410,9 +411,9 @@ export default function App() {
       {/* ── Top Calendar ── */}
       {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
-      {/* ── Left panel: sound menu (always visible when sounds active) or themes ── */}
-      <div className={`side-panel side-panel-left ${mode === "stopwatch" && anySoundActive && !showSwColorMenu ? "panel-pinned" : ""}`}>
-        {mode === "stopwatch" && !showSwColorMenu ? (
+      {/* ── Left panel: sound menu (for timer & stopwatch) or themes ── */}
+      <div className={`side-panel side-panel-left ${(mode === "stopwatch" || mode === "timer") && anySoundActive && !showSwColorMenu ? "panel-pinned" : ""}`}>
+        {(mode === "stopwatch" || mode === "timer") && !showSwColorMenu ? (
           <>
             <button className={`panel-btn ${swBeep60 ? 'active' : ''}`} onPointerDown={() => setSwBeep60(!swBeep60)} title="Сигнал каждую минуту">1м</button>
             <button className={`panel-btn ${swBeep30 ? 'active' : ''}`} onPointerDown={() => setSwBeep30(!swBeep30)} title="Сигнал каждые 30 сек">30с</button>
@@ -437,7 +438,7 @@ export default function App() {
                 title={THEME_LABELS[t]}
               />
             ))}
-            {mode === "stopwatch" && (
+            {(mode === "stopwatch" || mode === "timer") && (
               <>
                 <div className="panel-divider" style={{margin: '0.2rem 0'}} />
                 <button className="panel-btn" onPointerDown={() => setShowSwColorMenu(false)} title="Звуковые сигналы">

@@ -2,16 +2,13 @@ import { pad } from "./hooks";
 import type { TimerState, StopwatchState } from "./hooks";
 
 /* ─────────────────────────────────────────────────────────────
-   formatTimer(seconds)  →  "M:SS" or "H:MM:SS"
+   formatTimer(seconds)  →  always "HH:MM:SS"
    ───────────────────────────────────────────────────────────── */
-function formatTimer(seconds: number): { main: string; sub?: string } {
+function formatTimerClock(seconds: number): { h: string; m: string; s: string } {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  if (h > 0) {
-    return { main: `${h}:${pad(m)}:${pad(s)}` };
-  }
-  return { main: `${m}:${pad(s)}` };
+  return { h: pad(h), m: pad(m), s: pad(s) };
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -37,44 +34,6 @@ function formatStopwatchDays(ms: number): string {
   const h = Math.floor(totalSecs / 3600);
   const days = Math.floor(h / 24);
   return `${days} дн`;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   TimerDisplay  – standalone classes, no apple-hm conflict
-   ───────────────────────────────────────────────────────────── */
-function TimerDisplay({
-  main,
-  sub,
-  adjust
-}: {
-  main: string;
-  sub?: string;
-  adjust?: (delta: number) => void;
-}) {
-  return (
-    <div className="overlay-display">
-      <div className="timer-center-row">
-        {adjust && (
-          <div className="vertical-adj-group">
-            <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(60)}>+1 м</button>
-            <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(-60)}>−1 м</button>
-          </div>
-        )}
-        
-        <div className="overlay-time-row">
-          <span className="overlay-time-main">{main}</span>
-          {sub && <span className="overlay-time-sub">{sub}</span>}
-        </div>
-
-        {adjust && (
-          <div className="vertical-adj-group">
-            <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(10)}>+10 с</button>
-            <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(-10)}>−10 с</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -109,7 +68,8 @@ function OverlayControls({
 }
 
 /* ─────────────────────────────────────────────────────────────
-   TIMER OVERLAY
+   TIMER OVERLAY — clock-style HH:MM:SS format
+   Adjustment buttons at the top, controls at the bottom
    ───────────────────────────────────────────────────────────── */
 export function TimerOverlay({
   timer,
@@ -122,7 +82,7 @@ export function TimerOverlay({
   const handleStartPause = () => (running ? pause() : start());
   const isStopwatch = phase === "stopwatch";
   const { main: swMain, sub: swSub } = formatStopwatch(elapsed);
-  const { main: tmMain } = formatTimer(remaining);
+  const { h, m, s } = formatTimerClock(remaining);
 
   return (
     <div className="overlay">
@@ -137,30 +97,47 @@ export function TimerOverlay({
       </div>
 
       {isStopwatch ? (
-        <TimerDisplay main={swMain} sub={swSub} />
+        <div className="overlay-display overlay-display-stopwatch">
+          <div className="overlay-time-row">
+            <span className="overlay-time-main overlay-time-main-stopwatch">{swMain}</span>
+            {swSub && <span className="overlay-time-sub overlay-time-sub-stopwatch">{swSub}</span>}
+          </div>
+        </div>
       ) : (
-        <TimerDisplay main={tmMain} adjust={adjustRemaining} />
-      )}
+        <div className="overlay-display timer-global-display">
+          {/* Top adjustment row */}
+          <div className="timer-top-adj-row">
+            <div className="timer-adj-pair">
+              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(3600)}>+1 ч</button>
+              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(-3600)}>−1 ч</button>
+            </div>
+            <div className="timer-adj-pair">
+              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(60)}>+1 м</button>
+              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(-60)}>−1 м</button>
+            </div>
+            <div className="timer-adj-pair">
+              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(10)}>+10 с</button>
+              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(-10)}>−10 с</button>
+            </div>
+          </div>
 
-      {!isStopwatch && (
-        <div className="timer-overlay-actions">
-          <OverlayControls
-            running={running}
-            onStartPause={handleStartPause}
-            onReset={reset}
-            showReset={true}
-          />
+          {/* Clock-style display: HH:MM:SS */}
+          <div className="timer-clock-display">
+            <span className="timer-clock-segment">{h}</span>
+            <span className="timer-clock-colon">:</span>
+            <span className="timer-clock-segment">{m}</span>
+            <span className="timer-clock-colon">:</span>
+            <span className="timer-clock-segment timer-clock-sec">{s}</span>
+          </div>
         </div>
       )}
 
-      {isStopwatch && (
-        <OverlayControls
-          running={running}
-          onStartPause={handleStartPause}
-          onReset={reset}
-          showReset={true}
-        />
-      )}
+      <OverlayControls
+        running={running}
+        onStartPause={handleStartPause}
+        onReset={reset}
+        showReset={true}
+      />
     </div>
   );
 }
