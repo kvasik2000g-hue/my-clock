@@ -313,8 +313,6 @@ export default function App() {
   const [theme, setTheme] = useSetting<ClockTheme>("theme", "black", isClockTheme);
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
-  const [showMonth, setShowMonth] = useSetting<boolean>("showMonth", true, isBoolean);
-  const [boldFont, setBoldFont] = useSetting<boolean>("boldFont", false, isBoolean);
   const [mode, setMode] = useState<AppMode>("clock");
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
@@ -383,7 +381,6 @@ export default function App() {
   const openTimer = () => setMode(m => m === "timer" ? "clock" : "timer");
   const openStopwatch = () => setMode(m => m === "stopwatch" ? "clock" : "stopwatch");
   const closeOverlay = () => setMode("clock");
-  const toggleBold = () => setBoldFont(!boldFont);
 
   const anySoundActive = swBeep60 || swBeep30 || swBeep10 || swBeep1;
 
@@ -447,7 +444,7 @@ export default function App() {
 
       if (shouldChime) {
         lastChimeRef.current = totalMins;
-        playMontanaHourlyChime();
+        playMontanaHourlyChime(chimeInterval);
       }
     }, 500);
     return () => clearInterval(id);
@@ -455,9 +452,9 @@ export default function App() {
 
   const rootStyle = useMemo(
     () => ({
-      "--clock-weight": boldFont ? 350 : 200,
+      "--clock-weight": 350,
     }) as CSSProperties,
-    [boldFont]
+    []
   );
 
   return (
@@ -478,7 +475,7 @@ export default function App() {
       </header>
 
       {/* ── Top Calendar ── */}
-      {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
+      {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={true} />}
 
       {/* ── Left panel: chime/colors (clock) or sound menu (timer/stopwatch) ── */}
       <div className={`side-panel side-panel-left ${(mode === "stopwatch" || mode === "timer") && anySoundActive && !showSwColorMenu ? "panel-pinned" : ""}`}>
@@ -545,21 +542,11 @@ export default function App() {
 
       {/* ── Right panel: 2-column grid ── */}
       <div className="side-panel side-panel-right">
-        {/* Bold toggle */}
-        <button
-          className={`panel-btn ${boldFont ? "active" : ""}`}
-          onClick={toggleBold}
-          title="Жирный шрифт"
-        >
-          <WeightIcon bold={boldFont} />
-        </button>
-
         {/* Clock-only settings */}
         {mode === "clock" && (
           <>
             <button className={`panel-btn ${showSeconds ? "active" : ""}`} onClick={() => setShowSeconds(!showSeconds)} title="Секунды">:S</button>
             <button className={`panel-btn ${showDate ? "active" : ""}`} onClick={() => setShowDate(!showDate)} title="Календарь"><CalIcon /></button>
-            <button className={`panel-btn ${showMonth ? "active" : ""}`} onClick={() => setShowMonth(!showMonth)} title="Месяц"><MonthIcon /></button>
             <div className="panel-divider" />
             {STYLES.map((s) => (
               <button key={s} className={`panel-btn style-panel-btn ${s === style ? "active" : ""}`} onClick={() => setStyle(s)} aria-label={s}>{STYLE_LABELS[s]}</button>
@@ -573,7 +560,7 @@ export default function App() {
         )}
 
         <div className="panel-divider" />
-        <button className="panel-btn panel-btn-wide" onClick={toggleFullscreen} title={isFullscreen ? "Выйти" : "На весь экран"}>
+        <button className="panel-btn panel-btn-wide panel-btn-tall" onClick={toggleFullscreen} title={isFullscreen ? "Выйти" : "На весь экран"}>
           {isFullscreen ? <CompressIcon /> : <ExpandIcon />}
         </button>
       </div>
@@ -593,7 +580,7 @@ export default function App() {
       {/* ── Clock area ── */}
       <div className={`clock-area ${mode === "clock" && showDate ? "calendar-visible" : ""}`} onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
-          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}-${boldFont}`}>
+          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}`}>
             <ClockFace style={style} time={time} showSeconds={showSeconds} />
           </AutoFitClock>
         )}

@@ -245,9 +245,13 @@ export function playStopwatchBeep() {
   osc.stop(t + pipDur + 0.02);
 }
 
-/* Montana hourly chime: pip-pip-pip-piiiiiip
-   3 short pips + 1 long beep, like the classic hourly signal */
-export function playMontanaHourlyChime() {
+/* Chime sounds, Montana-style, different patterns per interval:
+   1m  = 1 short pip
+   10m = 2 short pips
+   15m = 2 short pips  (same as 10m)
+   30m = 3 short pips
+   1h  = 1 long beep */
+export function playMontanaHourlyChime(interval?: string) {
   const ctx = getAudioCtx();
   if (!ctx) return;
   if (ctx.state === "suspended") ctx.resume();
@@ -258,13 +262,31 @@ export function playMontanaHourlyChime() {
   const gap = 0.15;
   const vol = 0.15;
 
-  // Schedule: short, short, short, loooong
-  const pips = [
-    { offset: 0, dur: shortPip },
-    { offset: shortPip + gap, dur: shortPip },
-    { offset: (shortPip + gap) * 2, dur: shortPip },
-    { offset: (shortPip + gap) * 3, dur: longPip },
-  ];
+  let pips: { offset: number; dur: number }[];
+
+  switch (interval) {
+    case "1m":
+      pips = [{ offset: 0, dur: shortPip }];
+      break;
+    case "10m":
+    case "15m":
+      pips = [
+        { offset: 0, dur: shortPip },
+        { offset: shortPip + gap, dur: shortPip },
+      ];
+      break;
+    case "30m":
+      pips = [
+        { offset: 0, dur: shortPip },
+        { offset: shortPip + gap, dur: shortPip },
+        { offset: (shortPip + gap) * 2, dur: shortPip },
+      ];
+      break;
+    case "1h":
+    default:
+      pips = [{ offset: 0, dur: longPip }];
+      break;
+  }
 
   pips.forEach(({ offset, dur }) => {
     const osc = ctx.createOscillator();

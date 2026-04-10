@@ -423,6 +423,10 @@ html, body, #root {
   width: 100%;
 }
 
+.panel-btn-tall {
+  height: 4.8rem;
+}
+
 .panel-divider {
   grid-column: 1 / -1;
   width: 100%;
