@@ -167,7 +167,7 @@ export function get24Hours(date: Date) {
 }
 
 /* ============================================================
-   AUDIO  –  Web Audio API beep (3 short pulses)
+   AUDIO
    ============================================================ */
 let _audioCtx: AudioContext | null = null;
 
@@ -187,25 +187,33 @@ function getAudioCtx(): AudioContext | null {
   }
 }
 
-export function playBeep() {
+function playToneSequence(offsets: number[], duration: number, frequency: number, peakGain: number) {
   const ctx = getAudioCtx();
   if (!ctx) return;
   if (ctx.state === "suspended") ctx.resume();
 
-  [0, 0.32, 0.64].forEach((offset) => {
+  offsets.forEach((offset) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.type = "sine";
-    osc.frequency.value = 880;
+    osc.frequency.value = frequency;
     const t = ctx.currentTime + offset;
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.35, t + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+    gain.gain.linearRampToValueAtTime(peakGain, t + Math.min(0.03, duration / 2));
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
     osc.start(t);
-    osc.stop(t + 0.28);
+    osc.stop(t + duration + 0.02);
   });
+}
+
+export function playBeep() {
+  playToneSequence([0, 0.32, 0.64], 0.26, 880, 0.35);
+}
+
+export function playCountdownBeep() {
+  playToneSequence([0], 0.12, 880, 0.28);
 }
 
 /* ============================================================
@@ -234,6 +242,8 @@ export function useTimer(defaultSecs: number = 300): TimerState {
 
   const elapsedRef = useRef(0);
   const startRef = useRef(0);
+  const countdownCueRef = useRef<number | null>(null);
+  const zeroSignalMarksRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!running) return;
@@ -241,9 +251,16 @@ export function useTimer(defaultSecs: number = 300): TimerState {
     if (phase === "countdown") {
       const id = setInterval(() => {
         setRemaining((r) => {
+          if (r <= 5 && r > 0 && countdownCueRef.current !== r) {
+            countdownCueRef.current = r;
+            playCountdownBeep();
+          }
+
           if (r <= 1) {
             clearInterval(id);
             setRunning(false);
+            countdownCueRef.current = null;
+            zeroSignalMarksRef.current = [0];
             playBeep();
             setTimeout(() => {
               setPhase("stopwatch");
@@ -264,6 +281,15 @@ export function useTimer(defaultSecs: number = 300): TimerState {
         const e = Date.now() - startRef.current;
         elapsedRef.current = e;
         setElapsed(e);
+
+        const elapsedSeconds = Math.floor(e / 1000);
+        if (
+          (elapsedSeconds === 5 || elapsedSeconds === 10) &&
+          !zeroSignalMarksRef.current.includes(elapsedSeconds)
+        ) {
+          zeroSignalMarksRef.current.push(elapsedSeconds);
+          playBeep();
+        }
       }, 50);
       return () => clearInterval(id);
     }
@@ -277,10 +303,13 @@ export function useTimer(defaultSecs: number = 300): TimerState {
     setRemaining(defaultSecs);
     setElapsed(0);
     elapsedRef.current = 0;
+    countdownCueRef.current = null;
+    zeroSignalMarksRef.current = [];
   }, [defaultSecs]);
 
   const adjustRemaining = useCallback((delta: number) => {
     setRemaining((r) => Math.min(5940, Math.max(10, r + delta)));
+    countdownCueRef.current = null;
   }, []);
 
   return { phase, remaining, elapsed, running, start, pause, reset, adjustRemaining };

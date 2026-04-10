@@ -579,6 +579,15 @@ html, body, #root {
   justify-content: center;
 }
 
+.timer-overlay-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  margin-top: -0.2rem;
+}
+
 .overlay-label {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   font-size: 0.85rem;
@@ -626,7 +635,6 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.8rem;
 }
 
 .timer-adjust-row {

@@ -117,16 +117,26 @@ export function TimerOverlay({
         <TimerDisplay main={tmMain} label="Таймер" />
       )}
 
-      {!isStopwatch && !running && (
-        <TimerAdjust adjust={adjustRemaining} />
+      {!isStopwatch && (
+        <div className="timer-overlay-actions">
+          <OverlayControls
+            running={running}
+            onStartPause={handleStartPause}
+            onReset={reset}
+            showReset={true}
+          />
+          <TimerAdjust adjust={adjustRemaining} />
+        </div>
       )}
 
-      <OverlayControls
-        running={running}
-        onStartPause={handleStartPause}
-        onReset={reset}
-        showReset={true}
-      />
+      {isStopwatch && (
+        <OverlayControls
+          running={running}
+          onStartPause={handleStartPause}
+          onReset={reset}
+          showReset={true}
+        />
+      )}
     </div>
   );
 }
