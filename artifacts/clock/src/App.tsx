@@ -527,8 +527,8 @@ export default function App() {
         {/* Clock-only settings */}
         {mode === "clock" && (
           <>
-            <button className={`panel-btn ${showSeconds ? "active" : ""}`} onClick={() => setShowSeconds(!showSeconds)} title="Секунды">:S</button>
-            <button className={`panel-btn ${showDate ? "active" : ""}`} onClick={() => setShowDate(!showDate)} title="Календарь"><CalIcon /></button>
+            <button className={`panel-btn panel-btn-wide ${showSeconds ? "active" : ""}`} onClick={() => setShowSeconds(!showSeconds)} title="Секунды">:S</button>
+            <button className={`panel-btn panel-btn-wide ${showDate ? "active" : ""}`} onClick={() => setShowDate(!showDate)} title="Календарь"><CalIcon /></button>
           </>
         )}
 
