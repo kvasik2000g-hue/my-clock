@@ -534,7 +534,7 @@ export default function App() {
 
         {/* Back to clock */}
         {mode !== "clock" && (
-          <button className="panel-btn" onClick={closeOverlay} title="Вернуться к часам">⏰</button>
+          <button className="panel-btn panel-btn-wide" onClick={closeOverlay} title="Вернуться к часам">Часы</button>
         )}
 
         <div className="panel-divider" />
