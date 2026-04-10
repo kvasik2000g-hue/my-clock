@@ -223,6 +223,7 @@ export interface TimerState {
   start: () => void;
   pause: () => void;
   reset: () => void;
+  adjustRemaining: (delta: number) => void;
 }
 
 export function useTimer(defaultSecs: number = 300): TimerState {
@@ -278,7 +279,11 @@ export function useTimer(defaultSecs: number = 300): TimerState {
     elapsedRef.current = 0;
   }, [defaultSecs]);
 
-  return { phase, remaining, elapsed, running, start, pause, reset };
+  const adjustRemaining = useCallback((delta: number) => {
+    setRemaining((r) => Math.min(5940, Math.max(10, r + delta)));
+  }, []);
+
+  return { phase, remaining, elapsed, running, start, pause, reset, adjustRemaining };
 }
 
 /* ============================================================

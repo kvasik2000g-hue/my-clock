@@ -264,7 +264,7 @@ export default function App() {
         <div className="panel-divider" />
 
         <button
-          className="panel-btn"
+          className="panel-btn panel-btn-wide"
           onClick={toggleFullscreen}
           aria-label={isFullscreen ? "Выйти из полного экрана" : "На весь экран"}
         >

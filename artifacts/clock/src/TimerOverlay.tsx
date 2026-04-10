@@ -28,22 +28,40 @@ function formatStopwatch(ms: number): { main: string; sub: string } {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   TimerDisplay  (Apple-style big numbers)
+   TimerDisplay  – standalone classes, no apple-hm conflict
    ───────────────────────────────────────────────────────────── */
 function TimerDisplay({ main, sub, label }: { main: string; sub?: string; label: string }) {
   return (
     <div className="overlay-display">
       <div className="overlay-label">{label}</div>
-      <div className="apple-time overlay-time">
-        <span className="apple-hm overlay-main">{main}</span>
-        {sub && <span className="apple-sec overlay-sub">{sub}</span>}
+      <div className="overlay-time-row">
+        <span className="overlay-time-main">{main}</span>
+        {sub && <span className="overlay-time-sub">{sub}</span>}
       </div>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Control buttons at the bottom of the overlay
+   TimerAdjust  –  shown when countdown is paused/idle
+   ───────────────────────────────────────────────────────────── */
+function TimerAdjust({ adjust }: { adjust: (delta: number) => void }) {
+  return (
+    <div className="timer-adjust">
+      <div className="timer-adjust-row">
+        <button className="timer-adj-btn" onClick={() => adjust(-60)}>−1 мин</button>
+        <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(60)}>+1 мин</button>
+      </div>
+      <div className="timer-adjust-row">
+        <button className="timer-adj-btn" onClick={() => adjust(-10)}>−10 сек</button>
+        <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(10)}>+10 сек</button>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Control buttons
    ───────────────────────────────────────────────────────────── */
 function OverlayControls({
   running,
@@ -64,7 +82,7 @@ function OverlayControls({
         </button>
       )}
       <button
-        className={`overlay-btn overlay-btn-primary ${running ? "overlay-btn-pause" : ""}`}
+        className={`overlay-btn ${running ? "overlay-btn-pause" : "overlay-btn-primary"}`}
         onClick={onStartPause}
       >
         {running ? "Пауза" : "Старт"}
@@ -83,24 +101,26 @@ export function TimerOverlay({
   timer: TimerState;
   onClose: () => void;
 }) {
-  const { phase, remaining, elapsed, running, start, pause, reset } = timer;
-
+  const { phase, remaining, elapsed, running, start, pause, reset, adjustRemaining } = timer;
   const handleStartPause = () => (running ? pause() : start());
-
   const isStopwatch = phase === "stopwatch";
   const { main: swMain, sub: swSub } = formatStopwatch(elapsed);
   const { main: tmMain } = formatTimer(remaining);
 
   return (
     <div className="overlay">
-      <button className="overlay-close" onClick={onClose} aria-label="Закрыть">
-        ✕
-      </button>
+      <button className="overlay-close" onClick={onClose} aria-label="Закрыть">✕</button>
+
       {isStopwatch ? (
         <TimerDisplay main={swMain} sub={swSub} label="Секундомер" />
       ) : (
         <TimerDisplay main={tmMain} label="Таймер" />
       )}
+
+      {!isStopwatch && !running && (
+        <TimerAdjust adjust={adjustRemaining} />
+      )}
+
       <OverlayControls
         running={running}
         onStartPause={handleStartPause}
@@ -123,14 +143,11 @@ export function StopwatchOverlay({
 }) {
   const { elapsed, running, start, pause, reset } = sw;
   const { main, sub } = formatStopwatch(elapsed);
-
   const handleStartPause = () => (running ? pause() : start());
 
   return (
     <div className="overlay">
-      <button className="overlay-close" onClick={onClose} aria-label="Закрыть">
-        ✕
-      </button>
+      <button className="overlay-close" onClick={onClose} aria-label="Закрыть">✕</button>
       <TimerDisplay main={main} sub={sub} label="Секундомер" />
       <OverlayControls
         running={running}
