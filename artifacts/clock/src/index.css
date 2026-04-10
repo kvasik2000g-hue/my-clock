@@ -864,6 +864,11 @@ html, body, #root {
   visibility: hidden;
 }
 
+.timer-clock-sec {
+  font-size: clamp(2.5rem, 10vw, 6rem);
+  color: var(--fg);
+}
+
 /* Legacy (kept for backward compat) */
 .timer-center-row {
   display: flex;

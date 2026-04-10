@@ -187,7 +187,7 @@ export function TimerOverlay({
             <span className="timer-clock-colon">:</span>
             <span className="timer-clock-segment">{m}</span>
             <span className="timer-clock-colon timer-clock-colon-hidden">:</span>
-            <span className="timer-clock-segment">{s}</span>
+            <span className="timer-clock-segment timer-clock-sec">{s}</span>
           </div>
         </div>
       )}
