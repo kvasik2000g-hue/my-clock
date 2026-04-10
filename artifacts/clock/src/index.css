@@ -1036,11 +1036,11 @@ html, body, #root {
   
   .clock-area {
     position: absolute;
-    top: 50%;
+    top: 55%;
     left: 0;
     transform: translateY(-50%);
     width: 100vw;
-    height: 25vh;
+    height: 35vh;
     padding: 0;
     display: flex;
     justify-content: center;
@@ -1049,7 +1049,7 @@ html, body, #root {
   
   .calendar-widget {
     position: absolute;
-    top: calc(12vh + env(safe-area-inset-top, 0px));
+    top: calc(9.5rem + env(safe-area-inset-top, 0px));
     left: 50%;
     transform: translateX(-50%);
     flex-direction: column;
@@ -1070,39 +1070,53 @@ html, body, #root {
     align-items: baseline;
   }
   
-  .cal-month-name { font-size: 1.4rem; }
-  .cal-year-text { font-size: 1.2rem; margin-top: 0; }
+  .cal-month-name { font-size: 1.6rem; }
+  .cal-year-text { font-size: 1.3rem; margin-top: 0; }
+  .cal-cell { width: 2.3rem; }
+  .cal-day { font-size: 0.85rem; }
+  .cal-date { font-size: 1.2rem; height: 2.2rem; }
   
-  /* Make side panels perfectly centered at the bottom */
+  /* Make side panels perfectly centered at the bottom / top */
   .side-panel {
     position: absolute;
     top: auto;
     left: 50%;
     transform: translateX(-50%);
     flex-direction: row; 
-    border-radius: 1.2rem;
-    padding: 0.5rem 0.8rem;
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.6rem;
     height: max-content;
     border-left: 1px solid var(--panel-border);
     border-right: 1px solid var(--panel-border);
     width: max-content;
-    max-width: 90vw;
+    max-width: 95vw;
     flex-wrap: wrap;
     justify-content: center;
   }
   
   .side-panel-left {
-    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+    bottom: auto;
+    top: calc(4rem + env(safe-area-inset-top, 0px));
   }
   
   .side-panel-right {
-    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: row;
     align-items: center;
   }
   
-  .app-root.controls-hidden .side-panel {
+  .side-panel-right .panel-btn {
+    font-size: 1.2rem;
+    padding: 0.8rem 1rem;
+    height: auto;
+  }
+
+  .app-root.controls-hidden .side-panel-left {
+    transform: translate(-50%, -20px) scale(0.96);
+  }
+
+  .app-root.controls-hidden .side-panel-right {
     transform: translate(-50%, 20px) scale(0.96);
   }
 
