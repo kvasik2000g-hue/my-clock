@@ -855,14 +855,13 @@ html, body, #root {
   font-weight: var(--clock-weight);
   font-size: clamp(3.5rem, 15vw, 8.5rem);
   letter-spacing: -0.03em;
-  color: var(--fg-dim);
+  color: var(--fg);
   padding: 0 0.08em;
   line-height: 1;
 }
 
-.timer-clock-sec {
-  font-size: clamp(2.5rem, 10vw, 6rem);
-  color: var(--fg-dim);
+.timer-clock-colon-hidden {
+  visibility: hidden;
 }
 
 /* Legacy (kept for backward compat) */

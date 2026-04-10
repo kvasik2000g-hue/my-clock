@@ -1,5 +1,56 @@
+import { useRef, useCallback } from "react";
 import { pad } from "./hooks";
 import type { TimerState, StopwatchState } from "./hooks";
+
+function HoldButton({
+  className,
+  onAction,
+  children,
+}: {
+  className: string;
+  onAction: () => void;
+  children: React.ReactNode;
+}) {
+  const timeoutRef = useRef<number | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
+  const startAction = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    // Fire immediately
+    onAction();
+    // Start interval after a small delay
+    timeoutRef.current = window.setTimeout(() => {
+      intervalRef.current = window.setInterval(() => {
+        onAction();
+      }, 100);
+    }, 400);
+  }, [onAction]);
+
+  const stopAction = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  return (
+    <button
+      className={className}
+      onPointerDown={startAction}
+      onPointerUp={stopAction}
+      onPointerLeave={stopAction}
+      onPointerCancel={stopAction}
+      // Prevent default context menu behavior and text selection during hold
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {children}
+    </button>
+  );
+}
 
 /* ─────────────────────────────────────────────────────────────
    formatTimer(seconds)  →  always "HH:MM:SS"
@@ -117,16 +168,16 @@ export function TimerOverlay({
           {/* Top adjustment row */}
           <div className="timer-top-adj-row">
             <div className="timer-adj-pair">
-              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(3600)}>+1 ч</button>
-              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(-3600)}>−1 ч</button>
+              <HoldButton className="timer-adj-btn timer-adj-btn-hi" onAction={() => adjustRemaining(3600)}>+1 ч</HoldButton>
+              <HoldButton className="timer-adj-btn timer-adj-btn-hi" onAction={() => adjustRemaining(-3600)}>−1 ч</HoldButton>
             </div>
             <div className="timer-adj-pair">
-              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(60)}>+1 м</button>
-              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(-60)}>−1 м</button>
+              <HoldButton className="timer-adj-btn timer-adj-btn-hi" onAction={() => adjustRemaining(60)}>+1 м</HoldButton>
+              <HoldButton className="timer-adj-btn timer-adj-btn-hi" onAction={() => adjustRemaining(-60)}>−1 м</HoldButton>
             </div>
             <div className="timer-adj-pair">
-              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(10)}>+10 с</button>
-              <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjustRemaining(-10)}>−10 с</button>
+              <HoldButton className="timer-adj-btn timer-adj-btn-hi" onAction={() => adjustRemaining(10)}>+10 с</HoldButton>
+              <HoldButton className="timer-adj-btn timer-adj-btn-hi" onAction={() => adjustRemaining(-10)}>−10 с</HoldButton>
             </div>
           </div>
 
@@ -135,7 +186,7 @@ export function TimerOverlay({
             <span className="timer-clock-segment">{h}</span>
             <span className="timer-clock-colon">:</span>
             <span className="timer-clock-segment">{m}</span>
-            <span className="timer-clock-colon">:</span>
+            <span className="timer-clock-colon timer-clock-colon-hidden">:</span>
             <span className="timer-clock-segment">{s}</span>
           </div>
         </div>
