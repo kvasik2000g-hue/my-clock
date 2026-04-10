@@ -251,7 +251,7 @@ export function useTimer(defaultSecs: number = 300): TimerState {
     if (phase === "countdown") {
       const id = setInterval(() => {
         setRemaining((r) => {
-          if (r <= 5 && r > 0 && countdownCueRef.current !== r) {
+          if (r <= 5 && r >= 3 && countdownCueRef.current !== r) {
             countdownCueRef.current = r;
             playCountdownBeep();
           }
@@ -284,7 +284,7 @@ export function useTimer(defaultSecs: number = 300): TimerState {
 
         const elapsedSeconds = Math.floor(e / 1000);
         if (
-          (elapsedSeconds === 5 || elapsedSeconds === 10) &&
+          elapsedSeconds === 5 &&
           !zeroSignalMarksRef.current.includes(elapsedSeconds)
         ) {
           zeroSignalMarksRef.current.push(elapsedSeconds);
