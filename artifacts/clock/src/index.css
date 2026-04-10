@@ -224,15 +224,15 @@ html, body, #root {
 .battery-widget {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .battery-body-lg {
-  width: 30px;
-  height: 15px;
+  width: 38px;
+  height: 18px;
   border: 1.8px solid var(--fg-dim);
-  border-radius: 3.5px;
+  border-radius: 4px;
   overflow: hidden;
   padding: 1.5px;
   position: relative;
@@ -244,16 +244,25 @@ html, body, #root {
   transition: width 0.6s ease, background 0.4s;
 }
 
+@keyframes battery-blink-anim {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+.battery-blink {
+  animation: battery-blink-anim 0.8s infinite ease-in-out;
+}
+
 .battery-nub-lg {
   width: 4px;
-  height: 8px;
+  height: 9px;
   background: var(--fg-dim);
   border-radius: 0 2px 2px 0;
   flex-shrink: 0;
 }
 
 .battery-pct-lg {
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color: var(--fg-dim);
   display: flex;

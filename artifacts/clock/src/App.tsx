@@ -51,14 +51,14 @@ function BatteryIndicator({ isFullscreen }: { isFullscreen: boolean }) {
   if (!supported || !isFullscreen) return null;
 
   const pct = Math.round(level * 100);
-  const isLow = pct <= 20 && !charging;
+  const isLow = pct < 30 && !charging;
   const fillColor = charging ? "#30d158" : isLow ? "#ff3b30" : "var(--fg)";
 
   return (
     <div className="battery-widget">
       <div className="battery-body-lg">
         <div
-          className="battery-fill-lg"
+          className={`battery-fill-lg ${isLow ? "battery-blink" : ""}`}
           style={{ width: `${pct}%`, background: fillColor }}
         />
       </div>
