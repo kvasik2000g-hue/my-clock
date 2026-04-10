@@ -1025,3 +1025,110 @@ html, body, #root {
   .app-header { padding-right: 6rem; }
   .side-panel { padding: 0.6rem 0.4rem; }
 }
+
+@media (orientation: portrait) {
+  .app-header {
+    top: env(safe-area-inset-top, 1rem);
+    padding-right: env(safe-area-inset-right, 1rem);
+    width: 100%;
+    pointer-events: none;
+  }
+  
+  .clock-area {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 100vw;
+    height: 25vh;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .calendar-widget {
+    position: absolute;
+    top: calc(12vh + env(safe-area-inset-top, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    width: max-content;
+  }
+  
+  .cal-left-panel {
+    border-right: none;
+    border-bottom: 0px solid transparent;
+    padding-right: 0;
+    margin-right: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    flex-direction: row;
+    gap: 0.6rem;
+    align-items: baseline;
+  }
+  
+  .cal-month-name { font-size: 1.4rem; }
+  .cal-year-text { font-size: 1.2rem; margin-top: 0; }
+  
+  /* Make side panels perfectly centered at the bottom */
+  .side-panel {
+    position: absolute;
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row; 
+    border-radius: 1.2rem;
+    padding: 0.5rem 0.8rem;
+    height: max-content;
+    border-left: 1px solid var(--panel-border);
+    border-right: 1px solid var(--panel-border);
+    width: max-content;
+    max-width: 90vw;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .side-panel-left {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+  }
+  
+  .side-panel-right {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .app-root.controls-hidden .side-panel {
+    transform: translate(-50%, 20px) scale(0.96);
+  }
+
+  .app-root.controls-hidden .side-panel.panel-pinned {
+    transform: translateX(-50%) scale(1);
+  }
+  
+  .panel-divider {
+    width: 1px;
+    height: 1.8rem;
+    margin: 0 0.5rem;
+    grid-column: auto;
+  }
+
+  .panel-btn, .theme-dot-btn {
+    margin: 0 0.2rem;
+  }
+
+  .panel-btn-wide {
+    width: auto;
+    padding: 0 0.8rem;
+  }
+
+  .panel-btn-tall {
+    height: auto;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+}
