@@ -300,8 +300,8 @@ function CalendarWidget({ time, showMonth }: { time: Date; showMonth: boolean })
   );
 }
 
-function WeightIcon({ level }: { level: number }) {
-  return <span className="weight-btn-label">{`B${level}`}</span>;
+function WeightIcon({ bold }: { bold: boolean }) {
+  return <span className="weight-btn-label" style={{ fontWeight: bold ? 700 : 400 }}>B</span>;
 }
 
 /* ───────── Main App ───────── */
@@ -315,8 +315,7 @@ export default function App() {
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
   const [showMonth, setShowMonth] = useSetting<boolean>("showMonth", true, isBoolean);
-  /* menuShift removed */
-  const [clockWeight, setClockWeight] = useSetting<ClockWeight>("clockWeight", 200, isClockWeight);
+  const [boldFont, setBoldFont] = useSetting<boolean>("boldFont", false, isBoolean);
   const [mode, setMode] = useState<AppMode>("clock");
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
@@ -338,15 +337,8 @@ export default function App() {
     document.body.style.background = THEME_COLORS[theme];
   }, [theme]);
 
-  /* Double-tap to open timer */
-  const lastTapRef = useRef(0);
-  const handleClockTap = useCallback(() => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 350) {
-      setMode("timer");
-    }
-    lastTapRef.current = now;
-  }, []);
+  /* removed double-tap */
+  const handleClockTap = useCallback(() => {}, []);
 
   const scheduleControlsHide = useCallback(() => {
     if (hideControlsTimeoutRef.current !== null) {
@@ -388,16 +380,15 @@ export default function App() {
   const openTimer = () => setMode(m => m === "timer" ? "clock" : "timer");
   const openStopwatch = () => setMode(m => m === "stopwatch" ? "clock" : "stopwatch");
   const closeOverlay = () => setMode("clock");
-  const cycleWeight = () => {
-    const currentIndex = CLOCK_WEIGHTS.indexOf(clockWeight);
-    const nextIndex = (currentIndex + 1) % CLOCK_WEIGHTS.length;
-    setClockWeight(CLOCK_WEIGHTS[nextIndex]);
-  };
+  const toggleBold = () => setBoldFont(!boldFont);
+
+  const anySoundActive = swBeep60 || swBeep30 || swBeep10 || swBeep1;
+
   const rootStyle = useMemo(
     () => ({
-      "--clock-weight": clockWeight,
+      "--clock-weight": boldFont ? 350 : 200,
     }) as CSSProperties,
-    [clockWeight]
+    [boldFont]
   );
 
   return (
@@ -419,8 +410,8 @@ export default function App() {
       {/* ── Top Calendar ── */}
       {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
-      {/* ── Left panel: sound menu (auto-visible in stopwatch when sounds active) or themes ── */}
-      <div className={`side-panel side-panel-left ${mode === "stopwatch" && !showSwColorMenu && !(swBeep60||swBeep30||swBeep10||swBeep1) ? "panel-auto-hide" : ""}`}>
+      {/* ── Left panel: sound menu (always visible when sounds active) or themes ── */}
+      <div className={`side-panel side-panel-left ${mode === "stopwatch" && anySoundActive && !showSwColorMenu ? "panel-pinned" : ""}`}>
         {mode === "stopwatch" && !showSwColorMenu ? (
           <>
             <button className={`panel-btn ${swBeep60 ? 'active' : ''}`} onPointerDown={() => setSwBeep60(!swBeep60)} title="Сигнал каждую минуту">1м</button>
@@ -460,17 +451,17 @@ export default function App() {
 
       {/* ── Right panel: mode-contextual ── */}
       <div className="side-panel side-panel-right">
-        {/* Weight is always visible */}
+        {/* Bold toggle */}
         <button
-          className="panel-btn panel-btn-wide"
-          onClick={cycleWeight}
-          aria-label={`Толщина шрифта ${CLOCK_WEIGHTS.indexOf(clockWeight) + 1}`}
-          title="Толщина шрифта"
+          className={`panel-btn panel-btn-wide ${boldFont ? "active" : ""}`}
+          onClick={toggleBold}
+          aria-label="Жирный шрифт"
+          title="Жирный шрифт"
         >
-          <WeightIcon level={CLOCK_WEIGHTS.indexOf(clockWeight) + 1} />
+          <WeightIcon bold={boldFont} />
         </button>
 
-        {/* Clock-only settings: seconds, calendar, month */}
+        {/* Clock-only settings */}
         {mode === "clock" && (
           <>
             <div className="panel-divider" />
@@ -501,14 +492,9 @@ export default function App() {
             >
               <MonthIcon />
             </button>
-          </>
-        )}
 
-        <div className="panel-divider" />
+            <div className="panel-divider" />
 
-        {/* Clock styles — only in clock mode */}
-        {mode === "clock" && (
-          <>
             {STYLES.map((s) => (
               <button
                 key={s}
@@ -519,29 +505,22 @@ export default function App() {
                 {STYLE_LABELS[s]}
               </button>
             ))}
-
-            <div className="panel-divider" />
           </>
         )}
 
-        {/* Timer & Stopwatch — wide buttons, always visible */}
-        <button
-          className={`panel-btn panel-btn-wide ${mode === "timer" ? "active" : ""}`}
-          onClick={openTimer}
-          aria-label="Таймер"
-          title="Таймер"
-        >
-          <TimerIcon />
-        </button>
-
-        <button
-          className={`panel-btn panel-btn-wide ${mode === "stopwatch" ? "active" : ""}`}
-          onClick={openStopwatch}
-          aria-label="Секундомер"
-          title="Секундомер"
-        >
-          <StopwatchIcon />
-        </button>
+        {/* Back to clock button — in timer/stopwatch modes */}
+        {mode !== "clock" && (
+          <>
+            <div className="panel-divider" />
+            <button
+              className="panel-btn panel-btn-wide"
+              onClick={closeOverlay}
+              title="Вернуться к часам"
+            >
+              ⏰
+            </button>
+          </>
+        )}
 
         <div className="panel-divider" />
 
@@ -555,10 +534,22 @@ export default function App() {
         </button>
       </div>
 
+      {/* ── Bottom bar: Timer & Stopwatch buttons (only in clock mode) ── */}
+      {mode === "clock" && controlsVisible && (
+        <div className="bottom-bar">
+          <button className="bottom-bar-btn" onClick={openTimer}>
+            <TimerIcon /> <span>Таймер</span>
+          </button>
+          <button className="bottom-bar-btn" onClick={openStopwatch}>
+            <StopwatchIcon /> <span>Секундомер</span>
+          </button>
+        </div>
+      )}
+
       {/* ── Clock area ── */}
       <div className={`clock-area ${mode === "clock" && showDate ? "calendar-visible" : ""}`} onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
-          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}-${clockWeight}`}>
+          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}-${boldFont}`}>
             <ClockFace style={style} time={time} showSeconds={showSeconds} />
           </AutoFitClock>
         )}

@@ -124,6 +124,18 @@ html, body, #root {
   transform: translateY(-50%) scale(0.96);
 }
 
+/* Keep pinned panels visible even when controls are hidden */
+.app-root.controls-hidden .side-panel.panel-pinned {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.app-root.controls-hidden .bottom-bar {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .app-root.controls-hidden .clock-area {
   padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
   padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
@@ -338,6 +350,11 @@ html, body, #root {
 /* Auto-hide left panel when no sounds are active in stopwatch */
 .side-panel.panel-auto-hide {
   opacity: 0.35;
+}
+
+/* Pinned panel (stays visible even when controls hide) */
+.side-panel.panel-pinned {
+  /* no extra styles needed, the controls-hidden override above handles it */
 }
 
 /* Theme dot buttons (left panel) */
@@ -860,6 +877,43 @@ html, body, #root {
 .overlay-btn-pause {
   background: var(--card-bg);
   color: var(--fg);
+}
+
+/* ============================================================
+   BOTTOM BAR – Timer / Stopwatch launch buttons
+   ============================================================ */
+.bottom-bar {
+  position: fixed;
+  bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  z-index: 85;
+  transition: opacity 0.25s ease;
+}
+
+.bottom-bar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.4rem;
+  background: var(--card-bg);
+  color: var(--fg);
+  border: 1px solid var(--card-line);
+  border-radius: 0.75rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: background 0.12s, transform 0.1s;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bottom-bar-btn:active {
+  transform: scale(0.95);
+  background: var(--btn-active-bg);
 }
 
 /* ============================================================
