@@ -97,13 +97,18 @@ export function TimerOverlay({
           <div className="overlay-label overlay-label-corner">
             {isStopwatch ? "Секундомер" : "Таймер"}
           </div>
+          {isStopwatch && swDayLabel ? (
+            <div className="overlay-days">{swDayLabel}</div>
+          ) : null}
+          {!isStopwatch && timerDayLabel ? (
+            <div className="overlay-days">{timerDayLabel}</div>
+          ) : null}
         </div>
       </div>
 
       {isStopwatch ? (
         <div className="overlay-display overlay-display-stopwatch">
           <div className="overlay-time-row">
-            {swDays > 0 && <span className="overlay-time-main overlay-time-main-stopwatch" style={{ marginRight: '0.2em' }}>{swDays}д</span>}
             <span className="overlay-time-main overlay-time-main-stopwatch">{swMain}</span>
             {swSub && <span className="overlay-time-sub overlay-time-sub-stopwatch">{swSub}</span>}
           </div>
@@ -128,17 +133,11 @@ export function TimerOverlay({
 
           {/* Clock-style display: HH:MM:SS */}
           <div className="timer-clock-display">
-            {d > 0 && (
-              <>
-                <span className="timer-clock-segment">{d}д</span>
-                <span className="timer-clock-segment" style={{ marginLeft: '0.2em', marginRight: '0.2em' }}> </span>
-              </>
-            )}
             <span className="timer-clock-segment">{h}</span>
             <span className="timer-clock-colon">:</span>
             <span className="timer-clock-segment">{m}</span>
             <span className="timer-clock-colon">:</span>
-            <span className="timer-clock-segment">{s}</span>
+            <span className="timer-clock-segment timer-clock-sec">{s}</span>
           </div>
         </div>
       )}
@@ -175,12 +174,12 @@ export function StopwatchOverlay({
       <div className="overlay-top-info">
         <div className="overlay-top-left">
           <div className="overlay-label overlay-label-corner">Секундомер</div>
+          <div className="overlay-days">{dayLabel}</div>
         </div>
       </div>
 
       <div className="overlay-display overlay-display-stopwatch">
         <div className="overlay-time-row">
-          {elapsed >= 86400000 && <span className="overlay-time-main overlay-time-main-stopwatch" style={{ marginRight: '0.2em' }}>{Math.floor(elapsed / 86400000)}д</span>}
           <span className="overlay-time-main overlay-time-main-stopwatch">{main}</span>
           {sub && <span className="overlay-time-sub overlay-time-sub-stopwatch">{sub}</span>}
         </div>
