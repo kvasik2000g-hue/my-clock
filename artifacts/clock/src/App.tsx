@@ -523,7 +523,7 @@ export default function App() {
       </div>
 
       {/* ── Clock area ── */}
-      <div className="clock-area" onClickCapture={mode === "clock" ? handleClockTap : undefined}>
+      <div className={`clock-area ${mode === "clock" && showDate ? "calendar-visible" : ""}`} onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
           <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}-${clockWeight}`}>
             <ClockFace style={style} time={time} showSeconds={showSeconds} />

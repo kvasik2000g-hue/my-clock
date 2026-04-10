@@ -157,11 +157,10 @@ html, body, #root {
 .calendar-widget {
   position: absolute;
   top: max(3rem, calc(2.8rem + env(safe-area-inset-top, 0px)));
-  left: 50%;
-  transform: translateX(-50%);
+  left: max(5rem, calc(4.8rem + env(safe-area-inset-left, 0px)));
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.2rem;
   z-index: 10;
   pointer-events: none;
@@ -394,6 +393,10 @@ html, body, #root {
   width: 100%;
   text-align: center;
   transition: padding 0.25s ease;
+}
+
+.clock-area.calendar-visible {
+  padding-top: calc(7rem + env(safe-area-inset-top, 0px));
 }
 
 .clock-fit-box {
