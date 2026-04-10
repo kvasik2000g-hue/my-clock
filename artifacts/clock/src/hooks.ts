@@ -431,7 +431,7 @@ export function useTimer(defaultSecs: number = 300, beepConfig?: TimerBeepConfig
   }, [defaultSecs]);
 
   const adjustRemaining = useCallback((delta: number) => {
-    setRemaining((r) => Math.min(35999, Math.max(10, r + delta)));
+    setRemaining((r) => Math.min(999999, Math.max(10, r + delta)));
     countdownCueRef.current = null;
   }, []);
 

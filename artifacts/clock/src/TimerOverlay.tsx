@@ -4,11 +4,12 @@ import type { TimerState, StopwatchState } from "./hooks";
 /* ─────────────────────────────────────────────────────────────
    formatTimer(seconds)  →  always "HH:MM:SS"
    ───────────────────────────────────────────────────────────── */
-function formatTimerClock(seconds: number): { h: string; m: string; s: string } {
-  const h = Math.floor(seconds / 3600);
+function formatTimerClock(seconds: number): { d: number; h: string; m: string; s: string } {
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return { h: pad(h), m: pad(m), s: pad(s) };
+  return { d, h: pad(h), m: pad(m), s: pad(s) };
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -81,8 +82,11 @@ export function TimerOverlay({
   const { phase, remaining, elapsed, running, start, pause, reset, adjustRemaining } = timer;
   const handleStartPause = () => (running ? pause() : start());
   const isStopwatch = phase === "stopwatch";
+  const swDays = Math.floor(elapsed / 1000 / 86400);
+  const swDayLabel = swDays > 0 ? `${swDays} дн` : "";
   const { main: swMain, sub: swSub } = formatStopwatch(elapsed);
-  const { h, m, s } = formatTimerClock(remaining);
+  const { d, h, m, s } = formatTimerClock(remaining);
+  const timerDayLabel = d > 0 ? `${d} дн` : "";
 
   return (
     <div className="overlay">
@@ -93,6 +97,12 @@ export function TimerOverlay({
           <div className="overlay-label overlay-label-corner">
             {isStopwatch ? "Секундомер" : "Таймер"}
           </div>
+          {isStopwatch && swDayLabel ? (
+            <div className="overlay-days">{swDayLabel}</div>
+          ) : null}
+          {!isStopwatch && timerDayLabel ? (
+            <div className="overlay-days">{timerDayLabel}</div>
+          ) : null}
         </div>
       </div>
 

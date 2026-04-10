@@ -826,8 +826,11 @@ html, body, #root {
 .timer-adj-pair {
   display: flex;
   flex-direction: row;
-  gap: 0.4rem;
   align-items: center;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  border: 1px solid var(--card-line);
+  overflow: hidden;
 }
 
 .timer-clock-display {
@@ -880,15 +883,19 @@ html, body, #root {
 .timer-adj-btn {
   min-width: 3.5rem;
   padding: 0.5rem 0.8rem;
-  background: var(--card-bg);
+  background: transparent;
   color: var(--fg-dim);
-  border-radius: 0.75rem;
+  border-radius: 0;
   font-size: 0.85rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0.01em;
   transition: background 0.12s, color 0.12s, transform 0.1s;
-  border: 1px solid var(--card-line);
+  border: none;
+}
+
+.timer-adj-btn:first-child {
+  border-right: 1px solid var(--card-line);
 }
 
 .timer-adj-btn:active {
