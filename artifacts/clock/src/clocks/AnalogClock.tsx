@@ -24,6 +24,19 @@ export function AnalogClock({ time, showSeconds }: ClockFaceProps) {
     };
   });
 
+  const numbers = Array.from({ length: 12 }, (_, i) => {
+    const value = i + 1;
+    const angle = value * 30;
+    const rad = ((angle - 90) * Math.PI) / 180;
+    const radius = 64;
+
+    return {
+      value,
+      x: 100 + radius * Math.cos(rad),
+      y: 100 + radius * Math.sin(rad) + 3,
+    };
+  });
+
   return (
     <div className="clock-face analog-face">
       <svg
@@ -44,6 +57,18 @@ export function AnalogClock({ time, showSeconds }: ClockFaceProps) {
             y2={m.y2}
             className={`analog-marker ${m.isHour ? "analog-marker-hour" : ""}`}
           />
+        ))}
+
+        {numbers.map((n) => (
+          <text
+            key={n.value}
+            x={n.x}
+            y={n.y}
+            textAnchor="middle"
+            className="analog-number"
+          >
+            {n.value}
+          </text>
         ))}
 
         <line

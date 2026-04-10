@@ -1,5 +1,6 @@
 export type ClockStyle = "apple" | "analog" | "digital" | "flip";
 export type ClockTheme = "black" | "night" | "matrix" | "amber" | "day";
+export type ClockWeight = 200 | 250 | 300 | 350;
 
 export interface ClockFaceProps {
   time: Date;
@@ -36,3 +37,5 @@ export const THEME_DOT_COLORS: Record<ClockTheme, string> = {
   amber: "#4a2700",
   day: "#c8c8d0",
 };
+
+export const CLOCK_WEIGHTS: ClockWeight[] = [200, 250, 300, 350];

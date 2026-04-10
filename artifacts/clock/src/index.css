@@ -22,6 +22,7 @@ button {
    ============================================================ */
 :root,
 [data-theme="black"] {
+  --clock-weight: 200;
   --bg:              #000000;
   --fg:              #ffffff;
   --fg-dim:          rgba(255,255,255,0.42);
@@ -97,6 +98,7 @@ button {
 html, body, #root {
   width: 100%;
   height: 100%;
+  min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
   color: var(--fg);
@@ -110,10 +112,12 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
   transition: background 0.35s;
   position: relative;
+  overflow: hidden;
 }
 
 .app-root.controls-hidden .side-panel {
@@ -141,8 +145,8 @@ html, body, #root {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding-left: 3.2rem;   /* clear left panel */
-  padding-right: 5.5rem;  /* clear wider right panel (2-col grid) */
+  padding-left: 4.4rem;   /* clear left panel */
+  padding-right: 6rem;    /* clear wider right panel */
   padding-bottom: 0.35rem;
   z-index: 90;
   pointer-events: none;
@@ -251,19 +255,20 @@ html, body, #root {
 
 /* Theme dot buttons (left panel) */
 .theme-dot-btn {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
-  border: 2.5px solid transparent;
-  outline: 2.5px solid transparent;
-  outline-offset: 2px;
-  transition: transform 0.15s, outline-color 0.15s, border-color 0.15s;
+  width: 1.95rem;
+  height: 1.95rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid transparent;
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  transition: transform 0.15s, outline-color 0.15s, border-color 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
 }
 
 .theme-dot-btn.active {
-  transform: scale(1.22);
+  transform: scale(1.08);
   outline-color: var(--fg);
+  box-shadow: 0 0 0 1px var(--panel-border);
 }
 
 /* Generic panel buttons (right panel) */
@@ -280,6 +285,12 @@ html, body, #root {
   font-weight: 500;
   letter-spacing: 0.02em;
   transition: background 0.15s, color 0.15s;
+}
+
+.weight-btn-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
 }
 
 .panel-btn:active,
@@ -321,7 +332,11 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(2.6rem + env(safe-area-inset-top, 0px) + 1rem) 5.5rem 1.5rem 3.2rem;
+  padding:
+    calc(2.8rem + env(safe-area-inset-top, 0px))
+    5.9rem
+    calc(2.8rem + env(safe-area-inset-bottom, 0px))
+    4.4rem;
   min-height: 0;
   width: 100%;
   text-align: center;
@@ -335,6 +350,7 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  min-height: 0;
 }
 
 .clock-fit-stage {
@@ -357,7 +373,7 @@ html, body, #root {
    ============================================================ */
 .digital-time {
   font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: 10rem;
+  font-size: 11rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--fg);
@@ -369,7 +385,7 @@ html, body, #root {
 }
 
 .digital-time[data-no-seconds="true"] {
-  font-size: 14rem;
+  font-size: 15rem;
 }
 
 /* ============================================================
@@ -389,7 +405,7 @@ html, body, #root {
 
 .apple-hm {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
-  font-weight: 200;
+  font-weight: var(--clock-weight);
   font-size: 10rem;
   letter-spacing: -0.025em;
   color: var(--fg);
@@ -422,7 +438,7 @@ html, body, #root {
 
 .apple-sec {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
-  font-weight: 200;
+  font-weight: var(--clock-weight);
   font-size: 5rem;
   letter-spacing: -0.02em;
   color: var(--fg-dim);
@@ -441,8 +457,8 @@ html, body, #root {
    3.  ANALOG CLOCK
    ============================================================ */
 .analog-svg {
-  width: 30rem;
-  height: 30rem;
+  width: 26rem;
+  height: 26rem;
 }
 
 .analog-bg-circle { fill: var(--bg); }
@@ -455,6 +471,13 @@ html, body, #root {
 .analog-hand-second-tail { fill: var(--analog-second); transition: fill 0.35s; }
 .analog-center      { fill: var(--analog-fg); transition: fill 0.35s; }
 .analog-center-inner{ fill: var(--analog-second); transition: fill 0.35s; }
+.analog-number {
+  fill: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+}
 
 /* ============================================================
    4.  FLIP CLOCK
@@ -563,6 +586,8 @@ html, body, #root {
   color: var(--fg-dim);
   border-radius: 0.5rem;
   transition: color 0.15s, background 0.15s;
+  z-index: 3;
+  pointer-events: auto;
 }
 
 .overlay-close:active {
@@ -577,6 +602,25 @@ html, body, #root {
   gap: 0.5rem;
   flex: 1;
   justify-content: center;
+  width: 100%;
+}
+
+.overlay-display-stopwatch {
+  justify-content: center;
+}
+
+.overlay-top-info {
+  position: absolute;
+  top: 0.2rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.overlay-top-left {
+  padding-left: 0.2rem;
 }
 
 .timer-overlay-actions {
@@ -597,6 +641,18 @@ html, body, #root {
   color: var(--fg-dim);
 }
 
+.overlay-label-corner {
+  text-align: left;
+}
+
+.overlay-days {
+  margin-top: 0.2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+  text-align: left;
+}
+
 /* Standalone time display row (no apple-hm conflict) */
 .overlay-time-row {
   display: flex;
@@ -607,7 +663,7 @@ html, body, #root {
 
 .overlay-time-main {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
-  font-weight: 200;
+  font-weight: var(--clock-weight);
   font-size: clamp(4.5rem, 24vw, 12rem);
   letter-spacing: -0.03em;
   color: var(--fg);
@@ -617,9 +673,13 @@ html, body, #root {
   transition: color 0.35s;
 }
 
+.overlay-time-main-stopwatch {
+  font-size: clamp(5.6rem, 24vw, 14rem);
+}
+
 .overlay-time-sub {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
-  font-weight: 200;
+  font-weight: var(--clock-weight);
   font-size: clamp(2rem, 10.5vw, 5rem);
   letter-spacing: -0.02em;
   color: var(--fg-dim);
@@ -627,6 +687,10 @@ html, body, #root {
   line-height: 1;
   transition: color 0.35s;
   margin-left: 0.08em;
+}
+
+.overlay-time-sub-stopwatch {
+  font-size: clamp(2.5rem, 11vw, 5.4rem);
 }
 
 /* Timer adjustment controls */
@@ -709,17 +773,18 @@ html, body, #root {
    ============================================================ */
 @media (max-width: 360px) {
   .side-panel { padding: 0.35rem 0.2rem; }
-  .theme-dot-btn { width: 1.25rem; height: 1.25rem; }
+  .theme-dot-btn { width: 1.65rem; height: 1.65rem; }
   .panel-btn { width: 2rem; height: 1.85rem; font-size: 0.72rem; }
   .side-panel-right { grid-template-columns: repeat(2, 2rem); gap: 0.15rem; }
   .app-header { padding-right: 5rem; }
   .clock-area { padding-right: 5rem; }
   .app-root.controls-hidden .app-header { padding-right: max(0.75rem, env(safe-area-inset-right, 0px)); }
   .app-root.controls-hidden .clock-area { padding-right: max(0.75rem, env(safe-area-inset-right, 0px)); }
+  .overlay-time-main-stopwatch { font-size: clamp(4.7rem, 24vw, 12rem); }
 }
 
 @media (min-width: 600px) {
-  .clock-area { padding-left: 3.5rem; padding-right: 6rem; }
+  .clock-area { padding-left: 4.6rem; padding-right: 6.4rem; }
   .app-header { padding-right: 6rem; }
   .side-panel { padding: 0.6rem 0.4rem; }
 }

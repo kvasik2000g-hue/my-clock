@@ -19,12 +19,24 @@ function formatTimer(seconds: number): { main: string; sub?: string } {
    ───────────────────────────────────────────────────────────── */
 function formatStopwatch(ms: number): { main: string; sub: string } {
   const totalSecs = Math.floor(ms / 1000);
+  const secondsWithinDay = totalSecs % 86400;
+  const h = Math.floor(secondsWithinDay / 3600);
+  const m = Math.floor((secondsWithinDay % 3600) / 60);
+  const s = secondsWithinDay % 60;
+  const hundredths = Math.floor((ms % 1000) / 10);
+
+  if (totalSecs >= 3600) {
+    return { main: `${h}:${pad(m)}:${pad(s)}`, sub: "" };
+  }
+
+  return { main: `${m}:${pad(s)}`, sub: `.${pad(hundredths)}` };
+}
+
+function formatStopwatchDays(ms: number): string {
+  const totalSecs = Math.floor(ms / 1000);
   const h = Math.floor(totalSecs / 3600);
-  const m = Math.floor((totalSecs % 3600) / 60);
-  const s = totalSecs % 60;
-  const tenths = Math.floor((ms % 1000) / 100);
-  const main = h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
-  return { main, sub: `.${tenths}` };
+  const days = Math.floor(h / 24);
+  return `${days} дн`;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -153,12 +165,27 @@ export function StopwatchOverlay({
 }) {
   const { elapsed, running, start, pause, reset } = sw;
   const { main, sub } = formatStopwatch(elapsed);
+  const dayLabel = formatStopwatchDays(elapsed);
   const handleStartPause = () => (running ? pause() : start());
 
   return (
     <div className="overlay">
       <button className="overlay-close" onClick={onClose} aria-label="Закрыть">✕</button>
-      <TimerDisplay main={main} sub={sub} label="Секундомер" />
+
+      <div className="overlay-top-info">
+        <div className="overlay-top-left">
+          <div className="overlay-label overlay-label-corner">Секундомер</div>
+          <div className="overlay-days">{dayLabel}</div>
+        </div>
+      </div>
+
+      <div className="overlay-display overlay-display-stopwatch">
+        <div className="overlay-time-row">
+          <span className="overlay-time-main overlay-time-main-stopwatch">{main}</span>
+          {sub && <span className="overlay-time-sub overlay-time-sub-stopwatch">{sub}</span>}
+        </div>
+      </div>
+
       <OverlayControls
         running={running}
         onStartPause={handleStartPause}

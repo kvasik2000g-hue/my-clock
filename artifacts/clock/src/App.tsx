@@ -1,10 +1,12 @@
 import {
   useCallback,
+  useMemo,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
+  type CSSProperties,
 } from "react";
 import {
   useTime,
@@ -16,12 +18,13 @@ import {
   useStopwatch,
   formatDate,
 } from "./hooks";
-import type { ClockStyle, ClockTheme } from "./types";
+import type { ClockStyle, ClockTheme, ClockWeight } from "./types";
 import {
   THEME_COLORS,
   STYLE_LABELS,
   THEME_LABELS,
   THEME_DOT_COLORS,
+  CLOCK_WEIGHTS,
 } from "./types";
 import { DigitalClock } from "./clocks/DigitalClock";
 import { AppleClock } from "./clocks/AppleClock";
@@ -36,6 +39,8 @@ const isClockStyle = (v: unknown): v is ClockStyle =>
 const isClockTheme = (v: unknown): v is ClockTheme =>
   THEMES.includes(v as ClockTheme);
 const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
+const isClockWeight = (v: unknown): v is ClockWeight =>
+  CLOCK_WEIGHTS.includes(v as ClockWeight);
 
 type AppMode = "clock" | "timer" | "stopwatch";
 const CONTROLS_TIMEOUT_MS = 3000;
@@ -220,6 +225,10 @@ function CalIcon() {
   );
 }
 
+function WeightIcon({ level }: { level: number }) {
+  return <span className="weight-btn-label">{`W${level}`}</span>;
+}
+
 /* ───────── Main App ───────── */
 export default function App() {
   const time = useTime();
@@ -230,6 +239,7 @@ export default function App() {
   const [theme, setTheme] = useSetting<ClockTheme>("theme", "black", isClockTheme);
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
+  const [clockWeight, setClockWeight] = useSetting<ClockWeight>("clockWeight", 200, isClockWeight);
   const [mode, setMode] = useState<AppMode>("clock");
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
@@ -295,11 +305,23 @@ export default function App() {
   const openTimer = () => setMode(m => m === "timer" ? "clock" : "timer");
   const openStopwatch = () => setMode(m => m === "stopwatch" ? "clock" : "stopwatch");
   const closeOverlay = () => setMode("clock");
+  const cycleWeight = () => {
+    const currentIndex = CLOCK_WEIGHTS.indexOf(clockWeight);
+    const nextIndex = (currentIndex + 1) % CLOCK_WEIGHTS.length;
+    setClockWeight(CLOCK_WEIGHTS[nextIndex]);
+  };
+  const rootStyle = useMemo(
+    () => ({
+      "--clock-weight": clockWeight,
+    }) as CSSProperties,
+    [clockWeight]
+  );
 
   return (
     <div
       className={`app-root ${controlsVisible ? "" : "controls-hidden"}`}
       data-theme={theme}
+      style={rootStyle}
       onPointerDownCapture={revealControls}
       onPointerMoveCapture={revealControls}
       onTouchStartCapture={revealControls}
@@ -329,6 +351,17 @@ export default function App() {
 
       {/* ── Right panel: styles + actions ── */}
       <div className="side-panel side-panel-right">
+        <button
+          className="panel-btn panel-btn-wide"
+          onClick={cycleWeight}
+          aria-label={`Толщина шрифта ${CLOCK_WEIGHTS.indexOf(clockWeight) + 1}`}
+          title="Толщина шрифта"
+        >
+          <WeightIcon level={CLOCK_WEIGHTS.indexOf(clockWeight) + 1} />
+        </button>
+
+        <div className="panel-divider" />
+
         {STYLES.map((s) => (
           <button
             key={s}
@@ -394,7 +427,7 @@ export default function App() {
       {/* ── Clock area ── */}
       <div className="clock-area" onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
-          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}`}>
+          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}-${clockWeight}`}>
             <ClockFace style={style} time={time} showSeconds={showSeconds} />
           </AutoFitClock>
         )}
