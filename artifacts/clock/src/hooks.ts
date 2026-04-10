@@ -361,20 +361,27 @@ export function useTimer(defaultSecs: number = 300, beepConfig?: TimerBeepConfig
             playCountdownBeep();
           }
 
+          // Sync lastBeepSecRef if it gets out of sync due to adjustments
+          if (lastBeepSecRef.current === null || r >= lastBeepSecRef.current) {
+            lastBeepSecRef.current = r;
+          }
+
           // Periodic beep check
           const cfg = beepConfigRef.current;
-          if (cfg && lastBeepSecRef.current !== null && r < lastBeepSecRef.current) {
+          if (cfg && r < lastBeepSecRef.current) {
             lastBeepSecRef.current = r;
-            const elapsed = remaining - r; // how many seconds elapsed since start
-            if (elapsed > 0) {
-              let shouldBeep = false;
-              if (cfg.b60 && elapsed % 60 === 0) shouldBeep = true;
-              else if (cfg.b30 && elapsed % 30 === 0) shouldBeep = true;
-              else if (cfg.b10 && elapsed % 10 === 0) shouldBeep = true;
-              else if (cfg.b1) shouldBeep = true;
-              if (shouldBeep && r > 5) { // don't overlap with countdown beeps
-                playStopwatchBeep();
-              }
+            // Beep at round multiples of remaining time
+            let playLong = false;
+            let shouldBeep = false;
+            
+            if (cfg.b60 && r % 60 === 0) playLong = true;
+            else if (cfg.b30 && r % 30 === 0) shouldBeep = true;
+            else if (cfg.b10 && r % 10 === 0) shouldBeep = true;
+            else if (cfg.b1) shouldBeep = true;
+            
+            if ((shouldBeep || playLong) && r > 5) { // don't overlap with countdown beeps
+              if (playLong) playMontanaHourlyChime('1h'); // Use long pip for 1 minute mark in timer
+              else playStopwatchBeep();
             }
           }
 
