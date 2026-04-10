@@ -45,6 +45,7 @@ function OverlayControls({
   onStartPause,
   onReset,
   showReset,
+  dayLabel,
 }: {
   running: boolean;
   onStartPause: () => void;
