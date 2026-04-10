@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { formatDate, pad, getHours } from "../hooks";
+import { pad, get24Hours } from "../hooks";
 import type { ClockFaceProps } from "../types";
 
 function FlipDigit({ value }: { value: string }) {
@@ -42,8 +42,8 @@ function FlipColon({ small }: { small?: boolean }) {
   );
 }
 
-export function FlipClock({ time, showSeconds, use24h }: ClockFaceProps) {
-  const { h } = getHours(time, use24h);
+export function FlipClock({ time, showSeconds }: ClockFaceProps) {
+  const h = get24Hours(time);
 
   const H = pad(h);
   const M = pad(time.getMinutes());
@@ -71,7 +71,6 @@ export function FlipClock({ time, showSeconds, use24h }: ClockFaceProps) {
           </>
         )}
       </div>
-      <div className="clock-date">{formatDate(time)}</div>
     </div>
   );
 }

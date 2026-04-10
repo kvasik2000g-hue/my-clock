@@ -1,21 +1,23 @@
-import { formatDate, pad, getHours } from "../hooks";
+import { pad, get24Hours } from "../hooks";
 import type { ClockFaceProps } from "../types";
 
-export function AppleClock({ time, showSeconds, use24h }: ClockFaceProps) {
-  const { h, ampm } = getHours(time, use24h);
+export function AppleClock({ time, showSeconds }: ClockFaceProps) {
+  const h = get24Hours(time);
 
   return (
     <div className="clock-face apple-face">
       <div className="apple-time">
         <span className="apple-hm" data-no-seconds={!showSeconds}>
-          {pad(h)}:{pad(time.getMinutes())}
+          <span className="apple-digit-group">{pad(h)}</span>
+          <span className="apple-colon">:</span>
+          <span className="apple-digit-group">{pad(time.getMinutes())}</span>
         </span>
         {showSeconds && (
-          <span className="apple-sec">{pad(time.getSeconds())}</span>
+          <span className="apple-sec">
+            <span className="apple-digit-group">{pad(time.getSeconds())}</span>
+          </span>
         )}
       </div>
-      {ampm && <div className="apple-ampm">{ampm}</div>}
-      <div className="clock-date apple-date">{formatDate(time)}</div>
     </div>
   );
 }

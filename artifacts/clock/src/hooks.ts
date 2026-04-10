@@ -17,7 +17,7 @@ export function useWakeLock() {
     try {
       wakeLockRef.current = await navigator.wakeLock.request("screen");
     } catch {
-      // not supported or permission denied
+      /* not supported or permission denied */
     }
   }, []);
 
@@ -55,7 +55,7 @@ export function useFullscreen() {
       try {
         await document.documentElement.requestFullscreen();
       } catch {
-        // browser denied
+        /* browser denied */
       }
     } else {
       await document.exitFullscreen();
@@ -90,14 +90,9 @@ export function useBattery(): BatteryState {
     if (typeof nav.getBattery !== "function") return;
 
     let battery: BatteryManager | null = null;
-
     const update = () => {
       if (!battery) return;
-      setState({
-        supported: true,
-        level: battery.level,
-        charging: battery.charging,
-      });
+      setState({ supported: true, level: battery.level, charging: battery.charging });
     };
 
     nav.getBattery().then((b) => {
@@ -118,32 +113,6 @@ export function useBattery(): BatteryState {
   return state;
 }
 
-export function useControlsVisible() {
-  const [visible, setVisible] = useState(true);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const show = useCallback(() => {
-    setVisible(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setVisible(false), 5000);
-  }, []);
-
-  useEffect(() => {
-    show();
-    window.addEventListener("mousemove", show, { passive: true });
-    window.addEventListener("touchstart", show, { passive: true });
-    window.addEventListener("click", show, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", show);
-      window.removeEventListener("touchstart", show);
-      window.removeEventListener("click", show);
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [show]);
-
-  return { visible, show };
-}
-
 export function useSetting<T>(
   key: string,
   defaultValue: T,
@@ -159,7 +128,7 @@ export function useSetting<T>(
         }
       }
     } catch {
-      // ignore parse errors and fall through to default
+      /* ignore */
     }
     return defaultValue;
   });
@@ -170,7 +139,7 @@ export function useSetting<T>(
       try {
         localStorage.setItem(`clock-${key}`, JSON.stringify(newValue));
       } catch {
-        // ignore
+        /* ignore */
       }
     },
     [key]
@@ -193,9 +162,160 @@ export function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export function getHours(date: Date, use24h: boolean): { h: number; ampm: string } {
-  const raw = date.getHours();
-  if (use24h) return { h: raw, ampm: "" };
-  const ampm = raw >= 12 ? "PM" : "AM";
-  return { h: raw % 12 || 12, ampm };
+export function get24Hours(date: Date) {
+  return date.getHours();
+}
+
+/* ============================================================
+   AUDIO  –  Web Audio API beep (3 short pulses)
+   ============================================================ */
+let _audioCtx: AudioContext | null = null;
+
+function getAudioCtx(): AudioContext | null {
+  try {
+    if (!_audioCtx) {
+      const Ctor =
+        window.AudioContext ||
+        (window as Window & { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctor) return null;
+      _audioCtx = new Ctor();
+    }
+    return _audioCtx;
+  } catch {
+    return null;
+  }
+}
+
+export function playBeep() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+
+  [0, 0.32, 0.64].forEach((offset) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    const t = ctx.currentTime + offset;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.35, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+    osc.start(t);
+    osc.stop(t + 0.28);
+  });
+}
+
+/* ============================================================
+   TIMER HOOK
+   phase "countdown" → counts down from totalSecs to 0
+   phase "stopwatch" → counts up from 0 (auto-starts after countdown ends)
+   ============================================================ */
+export type TimerPhase = "countdown" | "stopwatch";
+
+export interface TimerState {
+  phase: TimerPhase;
+  remaining: number;
+  elapsed: number;
+  running: boolean;
+  start: () => void;
+  pause: () => void;
+  reset: () => void;
+}
+
+export function useTimer(defaultSecs: number = 300): TimerState {
+  const [phase, setPhase] = useState<TimerPhase>("countdown");
+  const [remaining, setRemaining] = useState(defaultSecs);
+  const [elapsed, setElapsed] = useState(0);
+  const [running, setRunning] = useState(false);
+
+  const elapsedRef = useRef(0);
+  const startRef = useRef(0);
+
+  useEffect(() => {
+    if (!running) return;
+
+    if (phase === "countdown") {
+      const id = setInterval(() => {
+        setRemaining((r) => {
+          if (r <= 1) {
+            clearInterval(id);
+            setRunning(false);
+            playBeep();
+            setTimeout(() => {
+              setPhase("stopwatch");
+              setElapsed(0);
+              elapsedRef.current = 0;
+              startRef.current = Date.now();
+              setRunning(true);
+            }, 100);
+            return 0;
+          }
+          return r - 1;
+        });
+      }, 1000);
+      return () => clearInterval(id);
+    } else {
+      startRef.current = Date.now() - elapsedRef.current;
+      const id = setInterval(() => {
+        const e = Date.now() - startRef.current;
+        elapsedRef.current = e;
+        setElapsed(e);
+      }, 50);
+      return () => clearInterval(id);
+    }
+  }, [running, phase]);
+
+  const start = useCallback(() => setRunning(true), []);
+  const pause = useCallback(() => setRunning(false), []);
+  const reset = useCallback(() => {
+    setRunning(false);
+    setPhase("countdown");
+    setRemaining(defaultSecs);
+    setElapsed(0);
+    elapsedRef.current = 0;
+  }, [defaultSecs]);
+
+  return { phase, remaining, elapsed, running, start, pause, reset };
+}
+
+/* ============================================================
+   STOPWATCH HOOK
+   ============================================================ */
+export interface StopwatchState {
+  elapsed: number;
+  running: boolean;
+  start: () => void;
+  pause: () => void;
+  reset: () => void;
+}
+
+export function useStopwatch(): StopwatchState {
+  const [elapsed, setElapsed] = useState(0);
+  const [running, setRunning] = useState(false);
+  const elapsedRef = useRef(0);
+  const startRef = useRef(0);
+
+  useEffect(() => {
+    if (!running) return;
+    startRef.current = Date.now() - elapsedRef.current;
+    const id = setInterval(() => {
+      const e = Date.now() - startRef.current;
+      elapsedRef.current = e;
+      setElapsed(e);
+    }, 50);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const start = useCallback(() => setRunning(true), []);
+  const pause = useCallback(() => setRunning(false), []);
+  const reset = useCallback(() => {
+    setRunning(false);
+    setElapsed(0);
+    elapsedRef.current = 0;
+  }, []);
+
+  return { elapsed, running, start, pause, reset };
 }

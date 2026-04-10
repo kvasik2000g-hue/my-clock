@@ -1,10 +1,9 @@
-export type ClockStyle = "digital" | "apple" | "analog" | "neon" | "flip";
+export type ClockStyle = "apple" | "analog" | "digital" | "flip";
 export type ClockTheme = "black" | "night" | "matrix" | "amber" | "day";
 
 export interface ClockFaceProps {
   time: Date;
   showSeconds: boolean;
-  use24h: boolean;
 }
 
 export const THEME_COLORS: Record<ClockTheme, string> = {
@@ -16,11 +15,10 @@ export const THEME_COLORS: Record<ClockTheme, string> = {
 };
 
 export const STYLE_LABELS: Record<ClockStyle, string> = {
-  digital: "Digital",
-  apple: "Apple",
-  analog: "Аналог",
-  neon: "Neon",
-  flip: "Flip",
+  apple: "A",
+  analog: "○",
+  digital: "D",
+  flip: "F",
 };
 
 export const THEME_LABELS: Record<ClockTheme, string> = {
@@ -32,9 +30,9 @@ export const THEME_LABELS: Record<ClockTheme, string> = {
 };
 
 export const THEME_DOT_COLORS: Record<ClockTheme, string> = {
-  black: "#2a2a2a",
+  black: "#333333",
   night: "#1a3a6e",
-  matrix: "#003300",
+  matrix: "#004400",
   amber: "#4a2700",
   day: "#c8c8d0",
 };

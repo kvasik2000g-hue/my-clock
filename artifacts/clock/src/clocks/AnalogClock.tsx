@@ -1,4 +1,3 @@
-import { formatDate } from "../hooks";
 import type { ClockFaceProps } from "../types";
 
 export function AnalogClock({ time, showSeconds }: ClockFaceProps) {
@@ -81,7 +80,6 @@ export function AnalogClock({ time, showSeconds }: ClockFaceProps) {
         <circle cx="100" cy="100" r="5" className="analog-center" />
         <circle cx="100" cy="100" r="2.5" className="analog-center-inner" />
       </svg>
-      <div className="clock-date analog-date">{formatDate(time)}</div>
     </div>
   );
 }
