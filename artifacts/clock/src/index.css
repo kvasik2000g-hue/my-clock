@@ -964,8 +964,10 @@ html, body, #root {
 .bottom-bar-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
   padding: 0.65rem 1.4rem;
+  min-width: 9rem;
   background: var(--card-bg);
   color: var(--fg);
   border: 1px solid var(--card-line);
