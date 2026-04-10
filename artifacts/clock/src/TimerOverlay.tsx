@@ -57,7 +57,7 @@ function TimerDisplay({
         {adjust && (
           <div className="vertical-adj-group">
             <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(60)}>+1 м</button>
-            <button className="timer-adj-btn" onClick={() => adjust(-60)}>−1 м</button>
+            <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(-60)}>−1 м</button>
           </div>
         )}
         
@@ -69,7 +69,7 @@ function TimerDisplay({
         {adjust && (
           <div className="vertical-adj-group">
             <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(10)}>+10 с</button>
-            <button className="timer-adj-btn" onClick={() => adjust(-10)}>−10 с</button>
+            <button className="timer-adj-btn timer-adj-btn-hi" onClick={() => adjust(-10)}>−10 с</button>
           </div>
         )}
       </div>
