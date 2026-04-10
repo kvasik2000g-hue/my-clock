@@ -335,11 +335,12 @@ html, body, #root {
   right: 0;
   border-radius: 0.75rem 0 0 0.75rem;
   border-right: none;
-  /* Override flex → 2-column grid to reduce panel height */
-  display: grid;
-  grid-template-columns: repeat(2, 2.2rem);
-  gap: 0.2rem;
-  padding: 0.45rem 0.3rem;
+  /* Single column, compact */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.3rem;
   transition: background 0.35s, opacity 0.25s ease, transform 0.25s ease, right 0.35s ease, border-radius 0.35s ease;
 }
 
@@ -375,16 +376,16 @@ html, body, #root {
   box-shadow: none;
 }
 
-/* Generic panel buttons (right panel) */
+/* Generic panel buttons */
 .panel-btn {
-  width: 2.2rem;
-  height: 2rem;
+  width: 2.6rem;
+  height: 2.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--fg-dim);
   border-radius: 0.4rem;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -392,7 +393,7 @@ html, body, #root {
 }
 
 .weight-btn-label {
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -413,22 +414,20 @@ html, body, #root {
 
 /* Style button label font overrides */
 .style-panel-btn {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
 }
 
-/* Fullscreen button spans both grid columns */
+/* Wide button (no grid needed, just wider) */
 .panel-btn-wide {
-  grid-column: 1 / -1;
   width: 100%;
 }
 
 .panel-divider {
-  grid-column: 1 / -1; /* span both columns in the right panel grid */
   width: 100%;
   height: 1px;
   background: var(--panel-border);
-  margin: 0.05rem 0;
+  margin: 0.1rem 0;
 }
 
 /* ============================================================

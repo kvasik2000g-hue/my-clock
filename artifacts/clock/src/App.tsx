@@ -325,6 +325,8 @@ export default function App() {
   const [swBeep30, setSwBeep30] = useSetting("swBeep30", false, isBoolean);
   const [swBeep10, setSwBeep10] = useSetting("swBeep10", false, isBoolean);
   const [swBeep1, setSwBeep1] = useSetting("swBeep1", false, isBoolean);
+  const [hourlyChime, setHourlyChime] = useSetting("hourlyChime", false, isBoolean);
+  const [showChimeMenu, setShowChimeMenu] = useState(false);
 
   const beepConfig = { b60: swBeep60, b30: swBeep30, b10: swBeep10, b1: swBeep1 };
   const timer = useTimer(300, beepConfig);
@@ -385,6 +387,60 @@ export default function App() {
 
   const anySoundActive = swBeep60 || swBeep30 || swBeep10 || swBeep1;
 
+  /* Swipe navigation between active modes */
+  const swipeStartRef = useRef<{x: number; y: number; t: number} | null>(null);
+  const prevModeRef = useRef<AppMode>("clock");
+
+  const getActiveModes = useCallback((): AppMode[] => {
+    const modes: AppMode[] = ["clock"];
+    if (timer.running || timer.phase === "stopwatch") modes.push("timer");
+    if (sw.running || sw.elapsed > 0) modes.push("stopwatch");
+    return modes;
+  }, [timer.running, timer.phase, sw.running, sw.elapsed]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipeStartRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!swipeStartRef.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - swipeStartRef.current.x;
+    const dy = t.clientY - swipeStartRef.current.y;
+    const elapsed = Date.now() - swipeStartRef.current.t;
+    swipeStartRef.current = null;
+
+    if (elapsed > 500 || Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+
+    const activeModes = getActiveModes();
+    const currentIdx = activeModes.indexOf(mode);
+    if (currentIdx === -1) return;
+
+    const direction = dx > 0 ? -1 : 1; // swipe left = next, swipe right = prev
+    const nextIdx = (currentIdx + direction + activeModes.length) % activeModes.length;
+    const nextMode = activeModes[nextIdx];
+    if (nextMode !== mode) {
+      prevModeRef.current = mode;
+      setMode(nextMode);
+      revealControls();
+    }
+  }, [mode, getActiveModes, revealControls]);
+
+  /* Hourly chime */
+  const lastChimeHourRef = useRef(-1);
+  useEffect(() => {
+    if (!hourlyChime) return;
+    const id = setInterval(() => {
+      const now = new Date();
+      if (now.getMinutes() === 0 && now.getSeconds() === 0 && lastChimeHourRef.current !== now.getHours()) {
+        lastChimeHourRef.current = now.getHours();
+        import("./hooks").then(m => m.playMontanaHourlyChime());
+      }
+    }, 500);
+    return () => clearInterval(id);
+  }, [hourlyChime]);
+
   const rootStyle = useMemo(
     () => ({
       "--clock-weight": boldFont ? 350 : 200,
@@ -399,7 +455,8 @@ export default function App() {
       style={rootStyle}
       onPointerDownCapture={revealControls}
       onPointerMoveCapture={revealControls}
-      onTouchStartCapture={revealControls}
+      onTouchStartCapture={(e) => { revealControls(); handleTouchStart(e); }}
+      onTouchEndCapture={handleTouchEnd}
     >
 
       {/* ── Header ── */}
@@ -411,7 +468,7 @@ export default function App() {
       {/* ── Top Calendar ── */}
       {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
-      {/* ── Left panel: sound menu (for timer & stopwatch) or themes ── */}
+      {/* ── Left panel: chime/colors (clock) or sound menu (timer/stopwatch) ── */}
       <div className={`side-panel side-panel-left ${(mode === "stopwatch" || mode === "timer") && anySoundActive && !showSwColorMenu ? "panel-pinned" : ""}`}>
         {(mode === "stopwatch" || mode === "timer") && !showSwColorMenu ? (
           <>
@@ -419,15 +476,25 @@ export default function App() {
             <button className={`panel-btn ${swBeep30 ? 'active' : ''}`} onPointerDown={() => setSwBeep30(!swBeep30)} title="Сигнал каждые 30 сек">30с</button>
             <button className={`panel-btn ${swBeep10 ? 'active' : ''}`} onPointerDown={() => setSwBeep10(!swBeep10)} title="Сигнал каждые 10 сек">10с</button>
             <button className={`panel-btn ${swBeep1 ? 'active' : ''}`} onPointerDown={() => setSwBeep1(!swBeep1)} title="Сигнал каждую секунду">1с</button>
-            
-            <div className="panel-divider" style={{margin: '0.2rem 0'}} />
-            
+            <div className="panel-divider" />
             <button className="panel-btn" onPointerDown={() => setShowSwColorMenu(true)} title="Выбор цвета">
               <PaletteIcon />
             </button>
           </>
         ) : (
           <>
+            {mode === "clock" && (
+              <>
+                <button
+                  className={`panel-btn ${hourlyChime ? 'active' : ''}`}
+                  onPointerDown={() => setHourlyChime(!hourlyChime)}
+                  title={hourlyChime ? "Выключить сигнал каждый час" : "Сигнал каждый час"}
+                >
+                  <SpeakerIcon />
+                </button>
+                <div className="panel-divider" />
+              </>
+            )}
             {THEMES.map((t) => (
               <button
                 key={t}
@@ -440,7 +507,7 @@ export default function App() {
             ))}
             {(mode === "stopwatch" || mode === "timer") && (
               <>
-                <div className="panel-divider" style={{margin: '0.2rem 0'}} />
+                <div className="panel-divider" />
                 <button className="panel-btn" onPointerDown={() => setShowSwColorMenu(false)} title="Звуковые сигналы">
                   <SpeakerIcon />
                 </button>
@@ -450,13 +517,12 @@ export default function App() {
         )}
       </div>
 
-      {/* ── Right panel: mode-contextual ── */}
+      {/* ── Right panel: mode-contextual, single column ── */}
       <div className="side-panel side-panel-right">
         {/* Bold toggle */}
         <button
-          className={`panel-btn panel-btn-wide ${boldFont ? "active" : ""}`}
+          className={`panel-btn ${boldFont ? "active" : ""}`}
           onClick={toggleBold}
-          aria-label="Жирный шрифт"
           title="Жирный шрифт"
         >
           <WeightIcon bold={boldFont} />
@@ -466,71 +532,26 @@ export default function App() {
         {mode === "clock" && (
           <>
             <div className="panel-divider" />
-
-            <button
-              className={`panel-btn ${showSeconds ? "active" : ""}`}
-              onClick={() => setShowSeconds(!showSeconds)}
-              title={showSeconds ? "Скрыть секунды" : "Показать секунды"}
-              aria-label="Секунды"
-            >
-              :S
-            </button>
-
-            <button
-              className={`panel-btn ${showDate ? "active" : ""}`}
-              onClick={() => setShowDate(!showDate)}
-              title={showDate ? "Скрыть календарь" : "Показать календарь"}
-              aria-label="Календарь"
-            >
-              <CalIcon />
-            </button>
-
-            <button
-              className={`panel-btn ${showMonth ? "active" : ""}`}
-              onClick={() => setShowMonth(!showMonth)}
-              title={showMonth ? "Скрыть месяц" : "Показать месяц"}
-              aria-label="Месяц"
-            >
-              <MonthIcon />
-            </button>
-
+            <button className={`panel-btn ${showSeconds ? "active" : ""}`} onClick={() => setShowSeconds(!showSeconds)} title="Секунды">:S</button>
+            <button className={`panel-btn ${showDate ? "active" : ""}`} onClick={() => setShowDate(!showDate)} title="Календарь"><CalIcon /></button>
+            <button className={`panel-btn ${showMonth ? "active" : ""}`} onClick={() => setShowMonth(!showMonth)} title="Месяц"><MonthIcon /></button>
             <div className="panel-divider" />
-
             {STYLES.map((s) => (
-              <button
-                key={s}
-                className={`panel-btn style-panel-btn ${s === style ? "active" : ""}`}
-                onClick={() => setStyle(s)}
-                aria-label={s}
-              >
-                {STYLE_LABELS[s]}
-              </button>
+              <button key={s} className={`panel-btn style-panel-btn ${s === style ? "active" : ""}`} onClick={() => setStyle(s)} aria-label={s}>{STYLE_LABELS[s]}</button>
             ))}
           </>
         )}
 
-        {/* Back to clock button — in timer/stopwatch modes */}
+        {/* Back to clock */}
         {mode !== "clock" && (
           <>
             <div className="panel-divider" />
-            <button
-              className="panel-btn panel-btn-wide"
-              onClick={closeOverlay}
-              title="Вернуться к часам"
-            >
-              ⏰
-            </button>
+            <button className="panel-btn" onClick={closeOverlay} title="Вернуться к часам">⏰</button>
           </>
         )}
 
         <div className="panel-divider" />
-
-        {/* Fullscreen */}
-        <button
-          className="panel-btn panel-btn-wide"
-          onClick={toggleFullscreen}
-          aria-label={isFullscreen ? "Выйти из полного экрана" : "На весь экран"}
-        >
+        <button className="panel-btn" onClick={toggleFullscreen} title={isFullscreen ? "Выйти" : "На весь экран"}>
           {isFullscreen ? <CompressIcon /> : <ExpandIcon />}
         </button>
       </div>
