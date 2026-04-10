@@ -50,9 +50,13 @@ function OverlayControls({
   onStartPause: () => void;
   onReset: () => void;
   showReset: boolean;
+  dayLabel?: string;
 }) {
   return (
     <div className="overlay-controls">
+      {dayLabel ? (
+        <div className="overlay-days-inline">{dayLabel}</div>
+      ) : null}
       {showReset && (
         <button className="overlay-btn overlay-btn-secondary" onClick={onReset}>
           Сброс
@@ -97,12 +101,6 @@ export function TimerOverlay({
           <div className="overlay-label overlay-label-corner">
             {isStopwatch ? "Секундомер" : "Таймер"}
           </div>
-          {isStopwatch && swDayLabel ? (
-            <div className="overlay-days">{swDayLabel}</div>
-          ) : null}
-          {!isStopwatch && timerDayLabel ? (
-            <div className="overlay-days">{timerDayLabel}</div>
-          ) : null}
         </div>
       </div>
 
@@ -137,7 +135,7 @@ export function TimerOverlay({
             <span className="timer-clock-colon">:</span>
             <span className="timer-clock-segment">{m}</span>
             <span className="timer-clock-colon">:</span>
-            <span className="timer-clock-segment timer-clock-sec">{s}</span>
+            <span className="timer-clock-segment">{s}</span>
           </div>
         </div>
       )}
@@ -147,6 +145,7 @@ export function TimerOverlay({
         onStartPause={handleStartPause}
         onReset={reset}
         showReset={true}
+        dayLabel={isStopwatch ? swDayLabel : timerDayLabel}
       />
     </div>
   );
@@ -174,7 +173,6 @@ export function StopwatchOverlay({
       <div className="overlay-top-info">
         <div className="overlay-top-left">
           <div className="overlay-label overlay-label-corner">Секундомер</div>
-          <div className="overlay-days">{dayLabel}</div>
         </div>
       </div>
 
@@ -190,6 +188,7 @@ export function StopwatchOverlay({
         onStartPause={handleStartPause}
         onReset={reset}
         showReset={elapsed > 0 || !running}
+        dayLabel={dayLabel}
       />
     </div>
   );
