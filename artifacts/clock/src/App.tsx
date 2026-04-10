@@ -29,11 +29,9 @@ import {
 } from "./types";
 import { DigitalClock } from "./clocks/DigitalClock";
 import { AppleClock } from "./clocks/AppleClock";
-import { AnalogClock } from "./clocks/AnalogClock";
-import { FlipClock } from "./clocks/FlipClock";
 import { TimerOverlay, StopwatchOverlay } from "./TimerOverlay";
 
-const STYLES: ClockStyle[] = ["apple", "analog", "digital", "flip"];
+const STYLES: ClockStyle[] = ["apple", "digital"];
 const THEMES: ClockTheme[] = ["black", "night", "matrix", "amber", "day"];
 const isClockStyle = (v: unknown): v is ClockStyle =>
   STYLES.includes(v as ClockStyle);
@@ -44,7 +42,9 @@ const isClockWeight = (v: unknown): v is ClockWeight =>
   CLOCK_WEIGHTS.includes(v as ClockWeight);
 
 type AppMode = "clock" | "timer" | "stopwatch";
-const CONTROLS_TIMEOUT_MS = 4000;
+const CONTROLS_TIMEOUT_MS = 5000;
+
+type ChimeInterval = "1m" | "10m" | "15m" | "30m" | "1h";
 
 /* ───────── Battery indicator ───────── */
 function BatteryIndicator({ isFullscreen }: { isFullscreen: boolean }) {
@@ -89,9 +89,7 @@ function ClockFace({
   const props = { time, showSeconds };
   switch (style) {
     case "apple":   return <AppleClock {...props} />;
-    case "analog":  return <AnalogClock {...props} />;
     case "digital": return <DigitalClock {...props} />;
-    case "flip":    return <FlipClock {...props} />;
     default:        return <AppleClock {...props} />;
   }
 }
@@ -328,6 +326,7 @@ export default function App() {
   const [swBeep1, setSwBeep1] = useSetting("swBeep1", false, isBoolean);
   const [hourlyChime, setHourlyChime] = useSetting("hourlyChime", false, isBoolean);
   const [showChimeMenu, setShowChimeMenu] = useState(false);
+  const [chimeInterval, setChimeInterval] = useSetting<string>("chimeInterval", "1h", (v): v is string => typeof v === "string");
 
   const beepConfig = { b60: swBeep60, b30: swBeep30, b10: swBeep10, b1: swBeep1 };
   const timer = useTimer(300, beepConfig);
@@ -428,19 +427,31 @@ export default function App() {
     }
   }, [mode, getActiveModes, revealControls]);
 
-  /* Hourly chime */
-  const lastChimeHourRef = useRef(-1);
+  /* Periodic chime */
+  const lastChimeRef = useRef(-1);
   useEffect(() => {
     if (!hourlyChime) return;
     const id = setInterval(() => {
       const now = new Date();
-      if (now.getMinutes() === 0 && now.getSeconds() === 0 && lastChimeHourRef.current !== now.getHours()) {
-        lastChimeHourRef.current = now.getHours();
+      const totalMins = now.getHours() * 60 + now.getMinutes();
+      const sec = now.getSeconds();
+      if (sec !== 0) return;
+
+      let shouldChime = false;
+      const ci = chimeInterval;
+      if (ci === "1m" && lastChimeRef.current !== totalMins) shouldChime = true;
+      else if (ci === "10m" && totalMins % 10 === 0 && lastChimeRef.current !== totalMins) shouldChime = true;
+      else if (ci === "15m" && totalMins % 15 === 0 && lastChimeRef.current !== totalMins) shouldChime = true;
+      else if (ci === "30m" && totalMins % 30 === 0 && lastChimeRef.current !== totalMins) shouldChime = true;
+      else if (ci === "1h" && now.getMinutes() === 0 && lastChimeRef.current !== totalMins) shouldChime = true;
+
+      if (shouldChime) {
+        lastChimeRef.current = totalMins;
         playMontanaHourlyChime();
       }
     }, 500);
     return () => clearInterval(id);
-  }, [hourlyChime]);
+  }, [hourlyChime, chimeInterval]);
 
   const rootStyle = useMemo(
     () => ({
@@ -482,14 +493,28 @@ export default function App() {
               <PaletteIcon />
             </button>
           </>
+        ) : mode === "clock" && showChimeMenu ? (
+          <>
+            <button className={`panel-btn ${chimeInterval === '1m' && hourlyChime ? 'active' : ''}`} onPointerDown={() => { setChimeInterval('1m'); setHourlyChime(true); }} title="Сигнал каждую минуту">1м</button>
+            <button className={`panel-btn ${chimeInterval === '10m' && hourlyChime ? 'active' : ''}`} onPointerDown={() => { setChimeInterval('10m'); setHourlyChime(true); }} title="Каждые 10 минут">10м</button>
+            <button className={`panel-btn ${chimeInterval === '15m' && hourlyChime ? 'active' : ''}`} onPointerDown={() => { setChimeInterval('15m'); setHourlyChime(true); }} title="Каждые 15 минут">15м</button>
+            <button className={`panel-btn ${chimeInterval === '30m' && hourlyChime ? 'active' : ''}`} onPointerDown={() => { setChimeInterval('30m'); setHourlyChime(true); }} title="Каждые 30 минут">30м</button>
+            <button className={`panel-btn ${chimeInterval === '1h' && hourlyChime ? 'active' : ''}`} onPointerDown={() => { setChimeInterval('1h'); setHourlyChime(true); }} title="Каждый час">1ч</button>
+            <div className="panel-divider" />
+            <button className={`panel-btn ${!hourlyChime ? 'active' : ''}`} onPointerDown={() => { setHourlyChime(false); }} title="Выключить">✕</button>
+            <div className="panel-divider" />
+            <button className="panel-btn" onPointerDown={() => setShowChimeMenu(false)} title="Цвета">
+              <PaletteIcon />
+            </button>
+          </>
         ) : (
           <>
             {mode === "clock" && (
               <>
                 <button
                   className={`panel-btn ${hourlyChime ? 'active' : ''}`}
-                  onPointerDown={() => setHourlyChime(!hourlyChime)}
-                  title={hourlyChime ? "Выключить сигнал каждый час" : "Сигнал каждый час"}
+                  onPointerDown={() => setShowChimeMenu(true)}
+                  title="Настройки сигнала"
                 >
                   <SpeakerIcon />
                 </button>
@@ -518,7 +543,7 @@ export default function App() {
         )}
       </div>
 
-      {/* ── Right panel: mode-contextual, single column ── */}
+      {/* ── Right panel: 2-column grid ── */}
       <div className="side-panel side-panel-right">
         {/* Bold toggle */}
         <button
@@ -532,7 +557,6 @@ export default function App() {
         {/* Clock-only settings */}
         {mode === "clock" && (
           <>
-            <div className="panel-divider" />
             <button className={`panel-btn ${showSeconds ? "active" : ""}`} onClick={() => setShowSeconds(!showSeconds)} title="Секунды">:S</button>
             <button className={`panel-btn ${showDate ? "active" : ""}`} onClick={() => setShowDate(!showDate)} title="Календарь"><CalIcon /></button>
             <button className={`panel-btn ${showMonth ? "active" : ""}`} onClick={() => setShowMonth(!showMonth)} title="Месяц"><MonthIcon /></button>
@@ -545,14 +569,11 @@ export default function App() {
 
         {/* Back to clock */}
         {mode !== "clock" && (
-          <>
-            <div className="panel-divider" />
-            <button className="panel-btn" onClick={closeOverlay} title="Вернуться к часам">⏰</button>
-          </>
+          <button className="panel-btn" onClick={closeOverlay} title="Вернуться к часам">⏰</button>
         )}
 
         <div className="panel-divider" />
-        <button className="panel-btn" onClick={toggleFullscreen} title={isFullscreen ? "Выйти" : "На весь экран"}>
+        <button className="panel-btn panel-btn-wide" onClick={toggleFullscreen} title={isFullscreen ? "Выйти" : "На весь экран"}>
           {isFullscreen ? <CompressIcon /> : <ExpandIcon />}
         </button>
       </div>

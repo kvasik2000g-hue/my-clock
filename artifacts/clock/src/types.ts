@@ -1,4 +1,4 @@
-export type ClockStyle = "apple" | "analog" | "digital" | "flip";
+export type ClockStyle = "apple" | "digital";
 export type ClockTheme = "black" | "night" | "matrix" | "amber" | "day";
 export type ClockWeight = 200 | 250 | 300 | 350;
 
@@ -17,9 +17,7 @@ export const THEME_COLORS: Record<ClockTheme, string> = {
 
 export const STYLE_LABELS: Record<ClockStyle, string> = {
   apple: "A",
-  analog: "⏱",
   digital: "D",
-  flip: "F",
 };
 
 export const THEME_LABELS: Record<ClockTheme, string> = {
