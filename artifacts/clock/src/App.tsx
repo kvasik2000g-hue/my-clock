@@ -43,7 +43,7 @@ const isClockWeight = (v: unknown): v is ClockWeight =>
   CLOCK_WEIGHTS.includes(v as ClockWeight);
 
 type AppMode = "clock" | "timer" | "stopwatch";
-const CONTROLS_TIMEOUT_MS = 3000;
+const CONTROLS_TIMEOUT_MS = 4000;
 
 /* ───────── Battery indicator ───────── */
 function BatteryIndicator({ isFullscreen }: { isFullscreen: boolean }) {
@@ -238,25 +238,7 @@ function MonthIcon() {
   );
 }
 
-function ShiftRightIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M13 5l7 7-7 7" />
-      <path d="M4 12h16" />
-    </svg>
-  );
-}
-
-function ShiftLeftIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 19l-7-7 7-7" />
-      <path d="M20 12H4" />
-    </svg>
-  );
-}
+/* ShiftRight/ShiftLeft icons removed – shift feature removed */
 
 function SpeakerIcon() {
   return (
@@ -319,7 +301,7 @@ function CalendarWidget({ time, showMonth }: { time: Date; showMonth: boolean })
 }
 
 function WeightIcon({ level }: { level: number }) {
-  return <span className="weight-btn-label">{`W${level}`}</span>;
+  return <span className="weight-btn-label">{`B${level}`}</span>;
 }
 
 /* ───────── Main App ───────── */
@@ -333,7 +315,7 @@ export default function App() {
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
   const [showMonth, setShowMonth] = useSetting<boolean>("showMonth", true, isBoolean);
-  const [menuShift, setMenuShift] = useSetting<boolean>("menuShift", false, isBoolean);
+  /* menuShift removed */
   const [clockWeight, setClockWeight] = useSetting<ClockWeight>("clockWeight", 200, isClockWeight);
   const [mode, setMode] = useState<AppMode>("clock");
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -437,18 +419,18 @@ export default function App() {
       {/* ── Top Calendar ── */}
       {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
-      {/* ── Left panel: sound menu (default in stopwatch) or themes ── */}
-      <div className="side-panel side-panel-left">
+      {/* ── Left panel: sound menu (auto-visible in stopwatch when sounds active) or themes ── */}
+      <div className={`side-panel side-panel-left ${mode === "stopwatch" && !showSwColorMenu && !(swBeep60||swBeep30||swBeep10||swBeep1) ? "panel-auto-hide" : ""}`}>
         {mode === "stopwatch" && !showSwColorMenu ? (
           <>
-            <button className={`panel-btn ${swBeep60 ? 'active' : ''}`} onClick={() => setSwBeep60(!swBeep60)} title="Сигнал каждую минуту">1м</button>
-            <button className={`panel-btn ${swBeep30 ? 'active' : ''}`} onClick={() => setSwBeep30(!swBeep30)} title="Сигнал каждые 30 сек">30с</button>
-            <button className={`panel-btn ${swBeep10 ? 'active' : ''}`} onClick={() => setSwBeep10(!swBeep10)} title="Сигнал каждые 10 сек">10с</button>
-            <button className={`panel-btn ${swBeep1 ? 'active' : ''}`} onClick={() => setSwBeep1(!swBeep1)} title="Сигнал каждую секунду">1с</button>
+            <button className={`panel-btn ${swBeep60 ? 'active' : ''}`} onPointerDown={() => setSwBeep60(!swBeep60)} title="Сигнал каждую минуту">1м</button>
+            <button className={`panel-btn ${swBeep30 ? 'active' : ''}`} onPointerDown={() => setSwBeep30(!swBeep30)} title="Сигнал каждые 30 сек">30с</button>
+            <button className={`panel-btn ${swBeep10 ? 'active' : ''}`} onPointerDown={() => setSwBeep10(!swBeep10)} title="Сигнал каждые 10 сек">10с</button>
+            <button className={`panel-btn ${swBeep1 ? 'active' : ''}`} onPointerDown={() => setSwBeep1(!swBeep1)} title="Сигнал каждую секунду">1с</button>
             
             <div className="panel-divider" style={{margin: '0.2rem 0'}} />
             
-            <button className="panel-btn" onClick={() => setShowSwColorMenu(true)} title="Выбор цвета">
+            <button className="panel-btn" onPointerDown={() => setShowSwColorMenu(true)} title="Выбор цвета">
               <PaletteIcon />
             </button>
           </>
@@ -467,7 +449,7 @@ export default function App() {
             {mode === "stopwatch" && (
               <>
                 <div className="panel-divider" style={{margin: '0.2rem 0'}} />
-                <button className="panel-btn" onClick={() => setShowSwColorMenu(false)} title="Звуковые сигналы">
+                <button className="panel-btn" onPointerDown={() => setShowSwColorMenu(false)} title="Звуковые сигналы">
                   <SpeakerIcon />
                 </button>
               </>
@@ -476,8 +458,9 @@ export default function App() {
         )}
       </div>
 
-      {/* ── Right panel: styles + actions ── */}
-      <div className={`side-panel side-panel-right ${menuShift ? 'shifted' : ''}`}>
+      {/* ── Right panel: mode-contextual ── */}
+      <div className="side-panel side-panel-right">
+        {/* Weight is always visible */}
         <button
           className="panel-btn panel-btn-wide"
           onClick={cycleWeight}
@@ -487,23 +470,63 @@ export default function App() {
           <WeightIcon level={CLOCK_WEIGHTS.indexOf(clockWeight) + 1} />
         </button>
 
+        {/* Clock-only settings: seconds, calendar, month */}
+        {mode === "clock" && (
+          <>
+            <div className="panel-divider" />
+
+            <button
+              className={`panel-btn ${showSeconds ? "active" : ""}`}
+              onClick={() => setShowSeconds(!showSeconds)}
+              title={showSeconds ? "Скрыть секунды" : "Показать секунды"}
+              aria-label="Секунды"
+            >
+              :S
+            </button>
+
+            <button
+              className={`panel-btn ${showDate ? "active" : ""}`}
+              onClick={() => setShowDate(!showDate)}
+              title={showDate ? "Скрыть календарь" : "Показать календарь"}
+              aria-label="Календарь"
+            >
+              <CalIcon />
+            </button>
+
+            <button
+              className={`panel-btn ${showMonth ? "active" : ""}`}
+              onClick={() => setShowMonth(!showMonth)}
+              title={showMonth ? "Скрыть месяц" : "Показать месяц"}
+              aria-label="Месяц"
+            >
+              <MonthIcon />
+            </button>
+          </>
+        )}
+
         <div className="panel-divider" />
 
-        {STYLES.map((s) => (
-          <button
-            key={s}
-            className={`panel-btn style-panel-btn ${s === style && mode === "clock" ? "active" : ""}`}
-            onClick={() => { setStyle(s); setMode("clock"); }}
-            aria-label={s}
-          >
-            {STYLE_LABELS[s]}
-          </button>
-        ))}
+        {/* Clock styles — only in clock mode */}
+        {mode === "clock" && (
+          <>
+            {STYLES.map((s) => (
+              <button
+                key={s}
+                className={`panel-btn style-panel-btn ${s === style ? "active" : ""}`}
+                onClick={() => setStyle(s)}
+                aria-label={s}
+              >
+                {STYLE_LABELS[s]}
+              </button>
+            ))}
 
-        <div className="panel-divider" />
+            <div className="panel-divider" />
+          </>
+        )}
 
+        {/* Timer & Stopwatch — wide buttons, always visible */}
         <button
-          className={`panel-btn ${mode === "timer" ? "active" : ""}`}
+          className={`panel-btn panel-btn-wide ${mode === "timer" ? "active" : ""}`}
           onClick={openTimer}
           aria-label="Таймер"
           title="Таймер"
@@ -512,7 +535,7 @@ export default function App() {
         </button>
 
         <button
-          className={`panel-btn ${mode === "stopwatch" ? "active" : ""}`}
+          className={`panel-btn panel-btn-wide ${mode === "stopwatch" ? "active" : ""}`}
           onClick={openStopwatch}
           aria-label="Секундомер"
           title="Секундомер"
@@ -522,45 +545,7 @@ export default function App() {
 
         <div className="panel-divider" />
 
-        <button
-          className={`panel-btn ${showSeconds ? "active" : ""}`}
-          onClick={() => setShowSeconds(!showSeconds)}
-          title={showSeconds ? "Скрыть секунды" : "Показать секунды"}
-          aria-label="Секунды"
-        >
-          :S
-        </button>
-
-        <button
-          className={`panel-btn ${showDate ? "active" : ""}`}
-          onClick={() => setShowDate(!showDate)}
-          title={showDate ? "Скрыть календарь" : "Показать календарь"}
-          aria-label="Календарь"
-        >
-          <CalIcon />
-        </button>
-
-        <button
-          className={`panel-btn ${showMonth ? "active" : ""}`}
-          onClick={() => setShowMonth(!showMonth)}
-          title={showMonth ? "Скрыть месяц" : "Показать месяц"}
-          aria-label="Месяц"
-        >
-          <MonthIcon />
-        </button>
-
-        <div className="panel-divider" />
-
-        <button
-          className="panel-btn panel-btn-wide"
-          onClick={() => setMenuShift(!menuShift)}
-          title={menuShift ? "Прижать к краю" : "Отодвинуть от панели"}
-        >
-          {menuShift ? <ShiftRightIcon /> : <ShiftLeftIcon />}
-        </button>
-
-        <div className="panel-divider" />
-
+        {/* Fullscreen */}
         <button
           className="panel-btn panel-btn-wide"
           onClick={toggleFullscreen}

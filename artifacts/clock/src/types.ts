@@ -17,7 +17,7 @@ export const THEME_COLORS: Record<ClockTheme, string> = {
 
 export const STYLE_LABELS: Record<ClockStyle, string> = {
   apple: "A",
-  analog: "○",
+  analog: "⏱",
   digital: "D",
   flip: "F",
 };

@@ -332,9 +332,12 @@ html, body, #root {
 }
 
 .side-panel-right.shifted {
-  right: 3.5rem;
-  border-radius: 0.75rem;
-  border-right: 1px solid var(--panel-border);
+  /* shifted class removed — kept empty for backward compat */
+}
+
+/* Auto-hide left panel when no sounds are active in stopwatch */
+.side-panel.panel-auto-hide {
+  opacity: 0.35;
 }
 
 /* Theme dot buttons (left panel) */
@@ -342,17 +345,17 @@ html, body, #root {
   width: 1.95rem;
   height: 1.95rem;
   border-radius: 0.5rem;
-  border: 1.5px solid transparent;
-  outline: 2px solid transparent;
-  outline-offset: 1px;
-  transition: transform 0.15s, outline-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  border: 2px solid transparent;
+  outline: none;
+  outline-offset: 0;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
 }
 
 .theme-dot-btn.active {
-  transform: scale(1.08);
-  outline-color: var(--fg);
-  box-shadow: 0 0 0 1px var(--panel-border);
+  transform: scale(1.05);
+  border-color: var(--fg);
+  box-shadow: none;
 }
 
 /* Generic panel buttons (right panel) */
@@ -801,7 +804,7 @@ html, body, #root {
   padding: 0.7rem 1.1rem;
   background: var(--card-bg);
   color: var(--fg-dim);
-  border-radius: 2rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-weight: 600;
@@ -831,7 +834,7 @@ html, body, #root {
 .overlay-btn {
   min-width: 6rem;
   padding: 0.72rem 1.4rem;
-  border-radius: 2rem;
+  border-radius: 0.75rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-size: 1.05rem;
   font-weight: 500;
