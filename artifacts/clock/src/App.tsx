@@ -258,6 +258,18 @@ function ShiftLeftIcon() {
   );
 }
 
+function SpeakerIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+  );
+}
+
+function PaletteIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+  );
+}
+
 /* ───────── Calendar Widget ───────── */
 function CalendarWidget({ time, showMonth }: { time: Date; showMonth: boolean }) {
   const currentDayOfWeek = time.getDay();
@@ -321,6 +333,12 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>("clock");
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideControlsTimeoutRef = useRef<number | null>(null);
+
+  const [showSwAudioMenu, setShowSwAudioMenu] = useState(false);
+  const [swBeep60, setSwBeep60] = useSetting("swBeep60", false, isBoolean);
+  const [swBeep30, setSwBeep30] = useSetting("swBeep30", false, isBoolean);
+  const [swBeep10, setSwBeep10] = useSetting("swBeep10", false, isBoolean);
+  const [swBeep1, setSwBeep1] = useSetting("swBeep1", false, isBoolean);
 
   const timer = useTimer(300);
   const sw = useStopwatch();
@@ -414,18 +432,43 @@ export default function App() {
       {/* ── Top Calendar ── */}
       {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
-      {/* ── Left panel: themes ── */}
+      {/* ── Left panel: themes or sound menu ── */}
       <div className="side-panel side-panel-left">
-        {THEMES.map((t) => (
-          <button
-            key={t}
-            className={`theme-dot-btn ${t === theme ? "active" : ""}`}
-            style={{ background: THEME_DOT_COLORS[t] }}
-            onClick={() => setTheme(t)}
-            aria-label={THEME_LABELS[t]}
-            title={THEME_LABELS[t]}
-          />
-        ))}
+        {mode === "stopwatch" && showSwAudioMenu ? (
+          <>
+            <button className={`panel-btn ${swBeep60 ? 'active' : ''}`} onClick={() => setSwBeep60(!swBeep60)} title="Сигнал каждую минуту">1м</button>
+            <button className={`panel-btn ${swBeep30 ? 'active' : ''}`} onClick={() => setSwBeep30(!swBeep30)} title="Сигнал каждые 30 сек">30с</button>
+            <button className={`panel-btn ${swBeep10 ? 'active' : ''}`} onClick={() => setSwBeep10(!swBeep10)} title="Сигнал каждые 10 сек">10с</button>
+            <button className={`panel-btn ${swBeep1 ? 'active' : ''}`} onClick={() => setSwBeep1(!swBeep1)} title="Сигнал каждую секунду">1с</button>
+            
+            <div className="panel-divider" style={{margin: '0.2rem 0'}} />
+            
+            <button className="panel-btn" onClick={() => setShowSwAudioMenu(false)} title="Стиль часов">
+              <PaletteIcon />
+            </button>
+          </>
+        ) : (
+          <>
+            {THEMES.map((t) => (
+              <button
+                key={t}
+                className={`theme-dot-btn ${t === theme ? "active" : ""}`}
+                style={{ background: THEME_DOT_COLORS[t] }}
+                onClick={() => setTheme(t)}
+                aria-label={THEME_LABELS[t]}
+                title={THEME_LABELS[t]}
+              />
+            ))}
+            {mode === "stopwatch" && (
+              <>
+                <div className="panel-divider" style={{margin: '0.2rem 0'}} />
+                <button className="panel-btn" onClick={() => setShowSwAudioMenu(true)} title="Звуковые сигналы">
+                  <SpeakerIcon />
+                </button>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* ── Right panel: styles + actions ── */}

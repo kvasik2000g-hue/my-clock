@@ -216,6 +216,38 @@ export function playCountdownBeep() {
   playToneSequence([0], 0.12, 880, 0.28);
 }
 
+export function playStopwatchBeep() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+
+  const osc = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+  const gain = ctx.createGain();
+  
+  osc.connect(gain);
+  osc2.connect(gain);
+  gain.connect(ctx.destination);
+  
+  osc.type = "sine";
+  osc2.type = "triangle";
+  
+  osc.frequency.value = 659.25; // E5
+  osc2.frequency.value = 880.00; // A5
+  
+  const t = ctx.currentTime;
+  const duration = 0.5;
+  
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.2, t + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  
+  osc.start(t);
+  osc2.start(t);
+  osc.stop(t + duration + 0.1);
+  osc2.stop(t + duration + 0.1);
+}
+
 /* ============================================================
    TIMER HOOK
    phase "countdown" → counts down from totalSecs to 0
@@ -332,13 +364,41 @@ export function useStopwatch(): StopwatchState {
   const elapsedRef = useRef(0);
   const startRef = useRef(0);
 
+  const [b60] = useSetting("swBeep60", false, isBoolean);
+  const [b30] = useSetting("swBeep30", false, isBoolean);
+  const [b10] = useSetting("swBeep10", false, isBoolean);
+  const [b1] = useSetting("swBeep1", false, isBoolean);
+  const beepsRef = useRef({ b60, b30, b10, b1 });
+  const lastBeepSecRef = useRef(0);
+
+  useEffect(() => {
+    beepsRef.current = { b60, b30, b10, b1 };
+  }, [b60, b30, b10, b1]);
+
   useEffect(() => {
     if (!running) return;
     startRef.current = Date.now() - elapsedRef.current;
+    lastBeepSecRef.current = Math.floor(elapsedRef.current / 1000);
+
     const id = setInterval(() => {
       const e = Date.now() - startRef.current;
       elapsedRef.current = e;
       setElapsed(e);
+
+      const sec = Math.floor(e / 1000);
+      if (sec > lastBeepSecRef.current) {
+         lastBeepSecRef.current = sec;
+         const { b60, b30, b10, b1 } = beepsRef.current;
+         let shouldBeep = false;
+         if (b60 && sec > 0 && sec % 60 === 0) shouldBeep = true;
+         else if (b30 && sec > 0 && sec % 30 === 0) shouldBeep = true;
+         else if (b10 && sec > 0 && sec % 10 === 0) shouldBeep = true;
+         else if (b1 && sec > 0) shouldBeep = true;
+         
+         if (shouldBeep) {
+            playStopwatchBeep();
+         }
+      }
     }, 50);
     return () => clearInterval(id);
   }, [running]);
@@ -349,6 +409,7 @@ export function useStopwatch(): StopwatchState {
     setRunning(false);
     setElapsed(0);
     elapsedRef.current = 0;
+    lastBeepSecRef.current = 0;
   }, []);
 
   return { elapsed, running, start, pause, reset };
