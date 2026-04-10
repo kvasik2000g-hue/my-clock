@@ -46,9 +46,9 @@ type AppMode = "clock" | "timer" | "stopwatch";
 const CONTROLS_TIMEOUT_MS = 3000;
 
 /* ───────── Battery indicator ───────── */
-function BatteryIndicator() {
+function BatteryIndicator({ isFullscreen }: { isFullscreen: boolean }) {
   const { supported, level, charging } = useBattery();
-  if (!supported) return null;
+  if (!supported || !isFullscreen) return null;
 
   const pct = Math.round(level * 100);
   const isLow = pct <= 20 && !charging;
@@ -225,6 +225,82 @@ function CalIcon() {
   );
 }
 
+function MonthIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect x="3" y="8" width="18" height="14" rx="2" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </svg>
+  );
+}
+
+function ShiftRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 5l7 7-7 7" />
+      <path d="M4 12h16" />
+    </svg>
+  );
+}
+
+function ShiftLeftIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 19l-7-7 7-7" />
+      <path d="M20 12H4" />
+    </svg>
+  );
+}
+
+/* ───────── Calendar Widget ───────── */
+function CalendarWidget({ time, showMonth }: { time: Date; showMonth: boolean }) {
+  const currentDayOfWeek = time.getDay();
+  const monday = new Date(time);
+  const diff = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+  monday.setDate(monday.getDate() + diff);
+
+  const days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d.getDate());
+  }
+
+  const todayIndex = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+  const monthStr = time.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+
+  return (
+    <div className="calendar-widget">
+      <div className="cal-row cal-days-row">
+        {days.map((d, i) => (
+          <div key={d} className={`cal-cell cal-day ${i === todayIndex ? "cal-active-day" : ""}`}>
+            {d}
+          </div>
+        ))}
+      </div>
+      <div className="cal-row cal-dates-row">
+        {dates.map((d, i) => (
+          <div key={i} className={`cal-cell cal-date ${i === todayIndex ? "cal-active-date" : ""}`}>
+            {d}
+          </div>
+        ))}
+      </div>
+      {showMonth && (
+        <div className="cal-month-row">
+          {monthStr.charAt(0).toUpperCase() + monthStr.slice(1)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WeightIcon({ level }: { level: number }) {
   return <span className="weight-btn-label">{`W${level}`}</span>;
 }
@@ -239,6 +315,8 @@ export default function App() {
   const [theme, setTheme] = useSetting<ClockTheme>("theme", "black", isClockTheme);
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
+  const [showMonth, setShowMonth] = useSetting<boolean>("showMonth", true, isBoolean);
+  const [menuShift, setMenuShift] = useSetting<boolean>("menuShift", false, isBoolean);
   const [clockWeight, setClockWeight] = useSetting<ClockWeight>("clockWeight", 200, isClockWeight);
   const [mode, setMode] = useState<AppMode>("clock");
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -329,11 +407,12 @@ export default function App() {
 
       {/* ── Header ── */}
       <header className="app-header">
-        <div className="header-date">
-          {showDate ? formatDate(time) : ""}
-        </div>
-        <BatteryIndicator />
+        <div className="header-spacer" />
+        <BatteryIndicator isFullscreen={isFullscreen} />
       </header>
+
+      {/* ── Top Calendar ── */}
+      {showDate && mode === "clock" && <CalendarWidget time={time} showMonth={showMonth} />}
 
       {/* ── Left panel: themes ── */}
       <div className="side-panel side-panel-left">
@@ -350,7 +429,7 @@ export default function App() {
       </div>
 
       {/* ── Right panel: styles + actions ── */}
-      <div className="side-panel side-panel-right">
+      <div className={`side-panel side-panel-right ${menuShift ? 'shifted' : ''}`}>
         <button
           className="panel-btn panel-btn-wide"
           onClick={cycleWeight}
@@ -407,10 +486,29 @@ export default function App() {
         <button
           className={`panel-btn ${showDate ? "active" : ""}`}
           onClick={() => setShowDate(!showDate)}
-          title={showDate ? "Скрыть дату" : "Показать дату"}
-          aria-label="Дата"
+          title={showDate ? "Скрыть календарь" : "Показать календарь"}
+          aria-label="Календарь"
         >
           <CalIcon />
+        </button>
+
+        <button
+          className={`panel-btn ${showMonth ? "active" : ""}`}
+          onClick={() => setShowMonth(!showMonth)}
+          title={showMonth ? "Скрыть месяц" : "Показать месяц"}
+          aria-label="Месяц"
+        >
+          <MonthIcon />
+        </button>
+
+        <div className="panel-divider" />
+
+        <button
+          className="panel-btn panel-btn-wide"
+          onClick={() => setMenuShift(!menuShift)}
+          title={menuShift ? "Прижать к краю" : "Отодвинуть от панели"}
+        >
+          {menuShift ? <ShiftRightIcon /> : <ShiftLeftIcon />}
         </button>
 
         <div className="panel-divider" />

@@ -151,26 +151,74 @@ html, body, #root {
   transition: padding 0.25s ease;
 }
 
-.header-date {
+/* ============================================================
+   TOP CALENDAR WIDGET
+   ============================================================ */
+.calendar-widget {
+  position: absolute;
+  top: max(3rem, calc(2.8rem + env(safe-area-inset-top, 0px)));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  z-index: 10;
+  pointer-events: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 400;
+}
+
+.cal-row {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+.cal-cell {
+  width: 2rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-day {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+}
+
+.cal-date {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--fg-dim);
+  height: 2rem;
+}
+
+.cal-active-day {
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.cal-active-date {
+  color: var(--bg);
+  background: var(--fg);
+  border-radius: 0.4rem;
+  font-weight: 700;
+}
+
+.cal-month-row {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--fg-dim);
   letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 1em;
-  transition: color 0.35s, opacity 0.25s ease;
 }
 
 .app-root.controls-hidden .app-header {
   padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
   padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
-}
-
-.app-root.controls-hidden .header-date {
-  opacity: 0;
 }
 
 /* ─── Battery widget ─── */
@@ -249,6 +297,13 @@ html, body, #root {
   grid-template-columns: repeat(2, 2.2rem);
   gap: 0.2rem;
   padding: 0.45rem 0.3rem;
+  transition: background 0.35s, opacity 0.25s ease, transform 0.25s ease, right 0.35s ease, border-radius 0.35s ease;
+}
+
+.side-panel-right.shifted {
+  right: 3.5rem;
+  border-radius: 0.75rem;
+  border-right: 1px solid var(--panel-border);
 }
 
 /* Theme dot buttons (left panel) */
