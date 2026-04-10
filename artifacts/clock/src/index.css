@@ -159,9 +159,9 @@ html, body, #root {
   top: max(3rem, calc(2.8rem + env(safe-area-inset-top, 0px)));
   left: max(5rem, calc(4.8rem + env(safe-area-inset-left, 0px)));
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.2rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.2rem;
   z-index: 10;
   pointer-events: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -207,12 +207,35 @@ html, body, #root {
   font-weight: 700;
 }
 
-.cal-month-row {
-  margin-top: 0.4rem;
-  font-size: 0.85rem;
+.cal-left-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-right: 0.2rem;
+  padding-right: 1.2rem;
+  border-right: 1px solid var(--panel-border);
+}
+
+.cal-month-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.04em;
+}
+
+.cal-year-text {
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--fg-dim);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
+  margin-top: 0.1rem;
+}
+
+.cal-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .app-root.controls-hidden .app-header {

@@ -286,29 +286,34 @@ function CalendarWidget({ time, showMonth }: { time: Date; showMonth: boolean })
   }
 
   const todayIndex = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
-  const monthStr = time.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  const monthRaw = time.toLocaleDateString("ru-RU", { month: "long" });
+  const monthCapitalized = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
+  const yearStr = time.getFullYear();
 
   return (
     <div className="calendar-widget">
-      <div className="cal-row cal-days-row">
-        {days.map((d, i) => (
-          <div key={d} className={`cal-cell cal-day ${i === todayIndex ? "cal-active-day" : ""}`}>
-            {d}
-          </div>
-        ))}
-      </div>
-      <div className="cal-row cal-dates-row">
-        {dates.map((d, i) => (
-          <div key={i} className={`cal-cell cal-date ${i === todayIndex ? "cal-active-date" : ""}`}>
-            {d}
-          </div>
-        ))}
-      </div>
       {showMonth && (
-        <div className="cal-month-row">
-          {monthStr.charAt(0).toUpperCase() + monthStr.slice(1)}
+        <div className="cal-left-panel">
+          <div className="cal-month-name">{monthCapitalized}</div>
+          <div className="cal-year-text">{yearStr}</div>
         </div>
       )}
+      <div className="cal-right-panel">
+        <div className="cal-row cal-days-row">
+          {days.map((d, i) => (
+            <div key={d} className={`cal-cell cal-day ${i === todayIndex ? "cal-active-day" : ""}`}>
+              {d}
+            </div>
+          ))}
+        </div>
+        <div className="cal-row cal-dates-row">
+          {dates.map((d, i) => (
+            <div key={i} className={`cal-cell cal-date ${i === todayIndex ? "cal-active-date" : ""}`}>
+              {d}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
