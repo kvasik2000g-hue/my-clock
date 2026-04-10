@@ -216,36 +216,73 @@ export function playCountdownBeep() {
   playToneSequence([0], 0.12, 880, 0.28);
 }
 
+/* Montana / Casio-style digital watch beep
+   Uses square wave at ~3200 Hz for that classic piezo buzzer timbre.
+   Single "pip" lasting ~120ms with sharp attack and cutoff. */
 export function playStopwatchBeep() {
   const ctx = getAudioCtx();
   if (!ctx) return;
   if (ctx.state === "suspended") ctx.resume();
 
-  const osc = ctx.createOscillator();
-  const osc2 = ctx.createOscillator();
-  const gain = ctx.createGain();
-  
-  osc.connect(gain);
-  osc2.connect(gain);
-  gain.connect(ctx.destination);
-  
-  osc.type = "sine";
-  osc2.type = "triangle";
-  
-  osc.frequency.value = 659.25; // E5
-  osc2.frequency.value = 880.00; // A5
-  
   const t = ctx.currentTime;
-  const duration = 0.5;
-  
+  const freq = 3200;       // classic digital watch piezo frequency
+  const pipDur = 0.12;     // short pip duration
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.type = "square";
+  osc.frequency.value = freq;
+
   gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(0.2, t + 0.05);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
-  
+  gain.gain.linearRampToValueAtTime(0.15, t + 0.005); // sharp attack
+  gain.gain.setValueAtTime(0.15, t + pipDur - 0.01);
+  gain.gain.linearRampToValueAtTime(0, t + pipDur);   // sharp cutoff
+
   osc.start(t);
-  osc2.start(t);
-  osc.stop(t + duration + 0.1);
-  osc2.stop(t + duration + 0.1);
+  osc.stop(t + pipDur + 0.02);
+}
+
+/* Montana hourly chime: pip-pip-pip-piiiiiip
+   3 short pips + 1 long beep, like the classic hourly signal */
+export function playMontanaHourlyChime() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+
+  const freq = 3200;
+  const shortPip = 0.08;
+  const longPip = 0.4;
+  const gap = 0.15;
+  const vol = 0.15;
+
+  // Schedule: short, short, short, loooong
+  const pips = [
+    { offset: 0, dur: shortPip },
+    { offset: shortPip + gap, dur: shortPip },
+    { offset: (shortPip + gap) * 2, dur: shortPip },
+    { offset: (shortPip + gap) * 3, dur: longPip },
+  ];
+
+  pips.forEach(({ offset, dur }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "square";
+    osc.frequency.value = freq;
+
+    const t = ctx.currentTime + offset;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.005);
+    gain.gain.setValueAtTime(vol, t + dur - 0.01);
+    gain.gain.linearRampToValueAtTime(0, t + dur);
+
+    osc.start(t);
+    osc.stop(t + dur + 0.02);
+  });
 }
 
 /* ============================================================
@@ -392,13 +429,19 @@ export function useStopwatch(beepConfig: StopwatchBeepConfig): StopwatchState {
       if (sec > lastBeepSecRef.current) {
          lastBeepSecRef.current = sec;
          const { b60, b30, b10, b1 } = beepsRef.current;
-         let shouldBeep = false;
-         if (b60 && sec > 0 && sec % 60 === 0) shouldBeep = true;
-         else if (b30 && sec > 0 && sec % 30 === 0) shouldBeep = true;
-         else if (b10 && sec > 0 && sec % 10 === 0) shouldBeep = true;
-         else if (b1 && sec > 0) shouldBeep = true;
          
-         if (shouldBeep) {
+         // Check if this is a minute mark (play full Montana chime)
+         if (b60 && sec > 0 && sec % 60 === 0) {
+            playMontanaHourlyChime();
+         }
+         // Otherwise check shorter intervals (play single pip)
+         else if (b30 && sec > 0 && sec % 30 === 0) {
+            playStopwatchBeep();
+         }
+         else if (b10 && sec > 0 && sec % 10 === 0) {
+            playStopwatchBeep();
+         }
+         else if (b1 && sec > 0) {
             playStopwatchBeep();
          }
       }
