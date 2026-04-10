@@ -38,6 +38,7 @@ const isClockTheme = (v: unknown): v is ClockTheme =>
 const isBoolean = (v: unknown): v is boolean => typeof v === "boolean";
 
 type AppMode = "clock" | "timer" | "stopwatch";
+const CONTROLS_TIMEOUT_MS = 3000;
 
 /* ───────── Battery indicator ───────── */
 function BatteryIndicator() {
@@ -106,16 +107,18 @@ function AutoFitClock({ children, fitKey }: { children: ReactNode; fitKey: strin
       frame = requestAnimationFrame(() => {
         if (!container || !content) return;
 
-        const containerRect = container.getBoundingClientRect();
-        const contentRect = content.getBoundingClientRect();
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        const contentWidth = content.offsetWidth;
+        const contentHeight = content.offsetHeight;
 
-        if (!containerRect.width || !containerRect.height || !contentRect.width || !contentRect.height) {
+        if (!containerWidth || !containerHeight || !contentWidth || !contentHeight) {
           return;
         }
 
         const nextScale = Math.min(
-          containerRect.width / contentRect.width,
-          containerRect.height / contentRect.height
+          containerWidth / contentWidth,
+          containerHeight / contentHeight
         );
 
         setScale(Number.isFinite(nextScale) ? Math.max(nextScale * 0.98, 0.1) : 1);
@@ -228,6 +231,8 @@ export default function App() {
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
   const [mode, setMode] = useState<AppMode>("clock");
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideControlsTimeoutRef = useRef<number | null>(null);
 
   const timer = useTimer(300);
   const sw = useStopwatch();
@@ -250,12 +255,55 @@ export default function App() {
     lastTapRef.current = now;
   }, []);
 
+  const scheduleControlsHide = useCallback(() => {
+    if (hideControlsTimeoutRef.current !== null) {
+      window.clearTimeout(hideControlsTimeoutRef.current);
+    }
+
+    hideControlsTimeoutRef.current = window.setTimeout(() => {
+      setControlsVisible(false);
+    }, CONTROLS_TIMEOUT_MS);
+  }, []);
+
+  const revealControls = useCallback(() => {
+    setControlsVisible(true);
+    scheduleControlsHide();
+  }, [scheduleControlsHide]);
+
+  useEffect(() => {
+    revealControls();
+
+    const handleViewportChange = () => {
+      revealControls();
+    };
+
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("orientationchange", handleViewportChange);
+    window.visualViewport?.addEventListener("resize", handleViewportChange);
+
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
+      window.visualViewport?.removeEventListener("resize", handleViewportChange);
+
+      if (hideControlsTimeoutRef.current !== null) {
+        window.clearTimeout(hideControlsTimeoutRef.current);
+      }
+    };
+  }, [revealControls]);
+
   const openTimer = () => setMode(m => m === "timer" ? "clock" : "timer");
   const openStopwatch = () => setMode(m => m === "stopwatch" ? "clock" : "stopwatch");
   const closeOverlay = () => setMode("clock");
 
   return (
-    <div className="app-root" data-theme={theme}>
+    <div
+      className={`app-root ${controlsVisible ? "" : "controls-hidden"}`}
+      data-theme={theme}
+      onPointerDownCapture={revealControls}
+      onPointerMoveCapture={revealControls}
+      onTouchStartCapture={revealControls}
+    >
 
       {/* ── Header ── */}
       <header className="app-header">
@@ -346,7 +394,7 @@ export default function App() {
       {/* ── Clock area ── */}
       <div className="clock-area" onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
-          <AutoFitClock fitKey={`${style}-${showSeconds}`}>
+          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}`}>
             <ClockFace style={style} time={time} showSeconds={showSeconds} />
           </AutoFitClock>
         )}
