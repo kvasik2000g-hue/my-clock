@@ -17,6 +17,7 @@ import {
   useTimer,
   useStopwatch,
   formatDate,
+  playMontanaHourlyChime,
 } from "./hooks";
 import type { ClockStyle, ClockTheme, ClockWeight } from "./types";
 import {
@@ -435,7 +436,7 @@ export default function App() {
       const now = new Date();
       if (now.getMinutes() === 0 && now.getSeconds() === 0 && lastChimeHourRef.current !== now.getHours()) {
         lastChimeHourRef.current = now.getHours();
-        import("./hooks").then(m => m.playMontanaHourlyChime());
+        playMontanaHourlyChime();
       }
     }, 500);
     return () => clearInterval(id);
