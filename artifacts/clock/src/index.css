@@ -306,12 +306,28 @@ html, body, #root {
   text-align: center;
 }
 
+.clock-fit-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.clock-fit-stage {
+  flex: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+
 .clock-face {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: max-content;
+  max-width: none;
 }
 
 /* ============================================================
@@ -319,7 +335,7 @@ html, body, #root {
    ============================================================ */
 .digital-time {
   font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: clamp(3.2rem, 17vw, 9rem);
+  font-size: 10rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--fg);
@@ -327,34 +343,32 @@ html, body, #root {
   text-align: center;
   font-variant-numeric: tabular-nums;
   transition: font-size 0.4s ease, color 0.35s;
-  width: 100%;
+  width: max-content;
 }
 
 .digital-time[data-no-seconds="true"] {
-  font-size: clamp(5.5rem, 28vw, 14rem);
+  font-size: 14rem;
 }
 
 /* ============================================================
    2.  APPLE CLOCK
    ============================================================ */
 .apple-face {
-  /* Use default stretch so apple-time fills full width */
-  align-items: stretch;
+  align-items: center;
 }
 
 .apple-time {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  width: 100%;
+  width: max-content;
   overflow: hidden;
 }
 
 .apple-hm {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
   font-weight: 200;
-  /* Account for asymmetric panels (left 3.2rem, right 5.5rem) */
-  font-size: clamp(3rem, 17vw, 9rem);
+  font-size: 10rem;
   letter-spacing: -0.025em;
   color: var(--fg);
   font-variant-numeric: tabular-nums;
@@ -366,7 +380,7 @@ html, body, #root {
 }
 
 .apple-hm[data-no-seconds="true"] {
-  font-size: clamp(4.5rem, 22vw, 11rem);
+  font-size: 13rem;
 }
 
 /* Fixed-width digit groups prevent jitter as digits change */
@@ -387,7 +401,7 @@ html, body, #root {
 .apple-sec {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
   font-weight: 200;
-  font-size: clamp(1.8rem, 8.5vw, 4.5rem);
+  font-size: 5rem;
   letter-spacing: -0.02em;
   color: var(--fg-dim);
   font-variant-numeric: tabular-nums;
@@ -405,8 +419,8 @@ html, body, #root {
    3.  ANALOG CLOCK
    ============================================================ */
 .analog-svg {
-  width: min(75vw, 58vh, 360px);
-  height: min(75vw, 58vh, 360px);
+  width: 30rem;
+  height: 30rem;
 }
 
 .analog-bg-circle { fill: var(--bg); }
@@ -440,7 +454,7 @@ html, body, #root {
   position: relative;
   width: 0.68em;
   height: 1.32em;
-  font-size: clamp(3rem, 14vw, 7.5rem);
+  font-size: 8rem;
   font-family: 'Share Tech Mono', 'Courier New', monospace;
   font-variant-numeric: tabular-nums;
   background: var(--card-bg);
@@ -465,7 +479,7 @@ html, body, #root {
 }
 
 .flip-time[data-no-seconds="true"] .flip-digit {
-  font-size: clamp(4.5rem, 22vw, 11.5rem);
+  font-size: 11rem;
 }
 
 .flip-text {
@@ -487,7 +501,7 @@ html, body, #root {
 }
 
 .flip-colon {
-  font-size: clamp(2.5rem, 11.5vw, 6rem);
+  font-size: 6rem;
   font-family: 'Share Tech Mono', monospace;
   color: var(--fg-dim);
   line-height: 1;
@@ -497,7 +511,7 @@ html, body, #root {
 }
 
 .flip-colon-small {
-  font-size: clamp(1.5rem, 6vw, 3.2rem);
+  font-size: 3.2rem;
 }
 
 /* ============================================================

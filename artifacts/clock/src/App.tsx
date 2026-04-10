@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   useTime,
   useWakeLock,
@@ -80,6 +87,70 @@ function ClockFace({
     case "flip":    return <FlipClock {...props} />;
     default:        return <AppleClock {...props} />;
   }
+}
+
+function AutoFitClock({ children, fitKey }: { children: ReactNode; fitKey: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+
+    let frame = 0;
+
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (!container || !content) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const contentRect = content.getBoundingClientRect();
+
+        if (!containerRect.width || !containerRect.height || !contentRect.width || !contentRect.height) {
+          return;
+        }
+
+        const nextScale = Math.min(
+          containerRect.width / contentRect.width,
+          containerRect.height / contentRect.height
+        );
+
+        setScale(Number.isFinite(nextScale) ? Math.max(nextScale * 0.98, 0.1) : 1);
+      });
+    };
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    observer.observe(content);
+
+    window.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("scroll", measure);
+    measure();
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("scroll", measure);
+    };
+  }, [fitKey]);
+
+  return (
+    <div className="clock-fit-box" ref={containerRef}>
+      <div
+        className="clock-fit-stage"
+        ref={contentRef}
+        style={{ transform: `scale(${scale})` }}
+      >
+        {children}
+      </div>
+    </div>
+  );
 }
 
 /* ───────── Fullscreen SVG icons ───────── */
@@ -275,7 +346,9 @@ export default function App() {
       {/* ── Clock area ── */}
       <div className="clock-area" onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
-          <ClockFace style={style} time={time} showSeconds={showSeconds} />
+          <AutoFitClock fitKey={`${style}-${showSeconds}`}>
+            <ClockFace style={style} time={time} showSeconds={showSeconds} />
+          </AutoFitClock>
         )}
         {mode === "timer" && (
           <TimerOverlay timer={timer} onClose={closeOverlay} />
