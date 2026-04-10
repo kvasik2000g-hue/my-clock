@@ -397,7 +397,10 @@ html, body, #root {
   letter-spacing: 0.06em;
 }
 
-.panel-btn:active,
+.panel-btn:active {
+  transform: scale(0.9);
+}
+
 .panel-btn:hover {
   background: var(--btn-active-bg);
   color: var(--fg);
