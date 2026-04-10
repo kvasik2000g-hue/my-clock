@@ -356,36 +356,39 @@ export function useTimer(defaultSecs: number = 300, beepConfig?: TimerBeepConfig
       lastBeepSecRef.current = remaining;
       const id = setInterval(() => {
         setRemaining((r) => {
-          if (r <= 5 && r >= 3 && countdownCueRef.current !== r) {
-            countdownCueRef.current = r;
+          const nextR = r - 1;
+
+          if (nextR <= 5 && nextR >= 3 && countdownCueRef.current !== nextR) {
+            countdownCueRef.current = nextR;
             playCountdownBeep();
           }
 
           // Sync lastBeepSecRef if it gets out of sync due to adjustments
-          if (lastBeepSecRef.current === null || r >= lastBeepSecRef.current) {
-            lastBeepSecRef.current = r;
+          if (lastBeepSecRef.current === null || nextR > lastBeepSecRef.current) {
+            lastBeepSecRef.current = nextR;
           }
 
           // Periodic beep check
           const cfg = beepConfigRef.current;
-          if (cfg && r < lastBeepSecRef.current) {
-            lastBeepSecRef.current = r;
+          if (cfg && nextR < lastBeepSecRef.current) {
+            lastBeepSecRef.current = nextR;
             // Beep at round multiples of remaining time
             let playLong = false;
             let shouldBeep = false;
             
-            if (cfg.b60 && r % 60 === 0) playLong = true;
-            else if (cfg.b30 && r % 30 === 0) shouldBeep = true;
-            else if (cfg.b10 && r % 10 === 0) shouldBeep = true;
-            else if (cfg.b1) shouldBeep = true;
+            // Only beep on the 10, 30, 60 boundaries (and 1s)
+            if (cfg.b60 && nextR > 0 && nextR % 60 === 0) playLong = true;
+            else if (cfg.b30 && nextR > 0 && nextR % 30 === 0) shouldBeep = true;
+            else if (cfg.b10 && nextR > 0 && nextR % 10 === 0) shouldBeep = true;
+            else if (cfg.b1 && nextR > 0) shouldBeep = true;
             
-            if ((shouldBeep || playLong) && r > 5) { // don't overlap with countdown beeps
+            if ((shouldBeep || playLong) && nextR > 5) { // don't overlap with countdown beeps
               if (playLong) playMontanaHourlyChime('1h'); // Use long pip for 1 minute mark in timer
               else playStopwatchBeep();
             }
           }
 
-          if (r <= 1) {
+          if (nextR <= 0) {
             clearInterval(id);
             setRunning(false);
             countdownCueRef.current = null;
