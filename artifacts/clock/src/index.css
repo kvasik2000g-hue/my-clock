@@ -1028,15 +1028,16 @@ html, body, #root {
 
 @media (orientation: portrait) {
   .app-header {
-    top: env(safe-area-inset-top, 1rem);
-    padding-right: env(safe-area-inset-right, 1rem);
-    width: 100%;
+    top: max(1rem, env(safe-area-inset-top, 1rem));
+    right: max(1rem, env(safe-area-inset-right, 1rem));
+    left: auto;
+    width: auto;
     pointer-events: none;
   }
   
   .clock-area {
     position: absolute;
-    top: 55%;
+    top: 45%;
     left: 0;
     transform: translateY(-50%);
     width: 100vw;
@@ -1049,7 +1050,7 @@ html, body, #root {
   
   .calendar-widget {
     position: absolute;
-    top: calc(9.5rem + env(safe-area-inset-top, 0px));
+    top: calc(7.8rem + env(safe-area-inset-top, 0px));
     left: 50%;
     transform: translateX(-50%);
     flex-direction: column;
