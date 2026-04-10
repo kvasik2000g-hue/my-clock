@@ -27,11 +27,10 @@ import {
   THEME_DOT_COLORS,
   CLOCK_WEIGHTS,
 } from "./types";
-import { DigitalClock } from "./clocks/DigitalClock";
 import { AppleClock } from "./clocks/AppleClock";
 import { TimerOverlay, StopwatchOverlay } from "./TimerOverlay";
 
-const STYLES: ClockStyle[] = ["apple", "digital"];
+const STYLES: ClockStyle[] = ["apple"];
 const THEMES: ClockTheme[] = ["black", "night", "matrix", "amber", "day"];
 const isClockStyle = (v: unknown): v is ClockStyle =>
   STYLES.includes(v as ClockStyle);
@@ -76,23 +75,7 @@ function BatteryIndicator({ isFullscreen }: { isFullscreen: boolean }) {
   );
 }
 
-/* ───────── Clock face dispatcher ───────── */
-function ClockFace({
-  style,
-  time,
-  showSeconds,
-}: {
-  style: ClockStyle;
-  time: Date;
-  showSeconds: boolean;
-}) {
-  const props = { time, showSeconds };
-  switch (style) {
-    case "apple":   return <AppleClock {...props} />;
-    case "digital": return <DigitalClock {...props} />;
-    default:        return <AppleClock {...props} />;
-  }
-}
+/* ───────── Clock face dispatcher no longer needed, using AppleClock directly ───────── */
 
 function AutoFitClock({ children, fitKey }: { children: ReactNode; fitKey: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -309,7 +292,6 @@ export default function App() {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   useWakeLock();
 
-  const [style, setStyle] = useSetting<ClockStyle>("style", "apple", isClockStyle);
   const [theme, setTheme] = useSetting<ClockTheme>("theme", "black", isClockTheme);
   const [showSeconds, setShowSeconds] = useSetting<boolean>("seconds", true, isBoolean);
   const [showDate, setShowDate] = useSetting<boolean>("showDate", true, isBoolean);
@@ -547,10 +529,6 @@ export default function App() {
           <>
             <button className={`panel-btn ${showSeconds ? "active" : ""}`} onClick={() => setShowSeconds(!showSeconds)} title="Секунды">:S</button>
             <button className={`panel-btn ${showDate ? "active" : ""}`} onClick={() => setShowDate(!showDate)} title="Календарь"><CalIcon /></button>
-            <div className="panel-divider" />
-            {STYLES.map((s) => (
-              <button key={s} className={`panel-btn style-panel-btn ${s === style ? "active" : ""}`} onClick={() => setStyle(s)} aria-label={s}>{STYLE_LABELS[s]}</button>
-            ))}
           </>
         )}
 
@@ -580,8 +558,8 @@ export default function App() {
       {/* ── Clock area ── */}
       <div className={`clock-area ${mode === "clock" && showDate ? "calendar-visible" : ""}`} onClickCapture={mode === "clock" ? handleClockTap : undefined}>
         {mode === "clock" && (
-          <AutoFitClock fitKey={`${style}-${showSeconds}-${controlsVisible}`}>
-            <ClockFace style={style} time={time} showSeconds={showSeconds} />
+          <AutoFitClock fitKey={`${showSeconds}-${controlsVisible}`}>
+            <AppleClock time={time} showSeconds={showSeconds} />
           </AutoFitClock>
         )}
         {mode === "timer" && (
